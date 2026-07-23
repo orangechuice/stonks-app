@@ -255,27 +255,16 @@ export const StockChart: React.FC<StockChartProps> = ({
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
             const yVal = paddingTop + chartH * pct;
-            const priceVal = yMax - pct * yRange;
             return (
-              <g key={idx}>
-                <line
-                  x1="0"
-                  y1={yVal}
-                  x2={chartW}
-                  y2={yVal}
-                  stroke="rgba(255, 255, 255, 0.05)"
-                  strokeDasharray="4 4"
-                />
-                <text
-                  x={chartW + 8}
-                  y={yVal + 4}
-                  fill="rgba(255, 255, 255, 0.35)"
-                  fontSize="11"
-                  fontFamily="JetBrains Mono, monospace"
-                >
-                  {priceVal.toFixed(2)}
-                </text>
-              </g>
+              <line
+                key={idx}
+                x1="0"
+                y1={yVal}
+                x2={chartW}
+                y2={yVal}
+                stroke="rgba(255, 255, 255, 0.05)"
+                strokeDasharray="4 4"
+              />
             );
           })}
 
@@ -325,27 +314,61 @@ export const StockChart: React.FC<StockChartProps> = ({
               />
             </g>
           )}
-
-          {/* X Axis Time Labels */}
-          {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
-            const ptIdx = Math.floor(pct * (chartData.length - 1));
-            const pt = chartData[ptIdx];
-            if (!pt) return null;
-            const xVal = pct * chartW;
-            return (
-              <text
-                key={idx}
-                x={xVal}
-                y={svgHeight - 8}
-                fill="rgba(255, 255, 255, 0.4)"
-                fontSize="11"
-                textAnchor={idx === 0 ? 'start' : idx === 1 ? 'end' : 'middle'}
-              >
-                {pt.dateStr}
-              </text>
-            );
-          })}
         </svg>
+
+        {/* Y Axis Price Labels (HTML overlay to prevent text squishing/stretching on resize) */}
+        {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
+          const yVal = paddingTop + chartH * pct;
+          const priceVal = yMax - pct * yRange;
+          return (
+            <div
+              key={`y-label-${idx}`}
+              style={{
+                position: 'absolute',
+                top: yVal,
+                left: `${(chartW / svgWidth) * 100}%`,
+                paddingLeft: 8,
+                transform: 'translateY(-50%)',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: 11,
+                fontFamily: 'JetBrains Mono, monospace',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {priceVal.toFixed(2)}
+            </div>
+          );
+        })}
+
+        {/* X Axis Time Labels (HTML overlay to prevent text squishing/stretching on resize) */}
+        {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
+          const ptIdx = Math.floor(pct * (chartData.length - 1));
+          const pt = chartData[ptIdx];
+          if (!pt) return null;
+          const leftPct = ((pct * chartW) / svgWidth) * 100;
+          const transform = idx === 0 ? 'none' : idx === 4 ? 'translateX(-100%)' : 'translateX(-50%)';
+          return (
+            <div
+              key={`x-label-${idx}`}
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                left: `${leftPct}%`,
+                transform,
+                color: 'rgba(255, 255, 255, 0.4)',
+                fontSize: 11,
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {pt.dateStr}
+            </div>
+          );
+        })}
 
         {/* Hover Tooltip Overlay */}
         {hoverPoint && (
