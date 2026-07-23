@@ -33,7 +33,7 @@
 - **📊 Interactive Stock Charts**: View market trends across flexible timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`) complete with dynamic SVG line gradients, range axes, hover tooltips, and price crosshairs.
 - **🟢 Dynamic Color Indicators**: Visual feedback that dynamically adapts gradient overlays and badge highlights—emerald green (`#30D158`) for gains and ruby red (`#FF453A`) for market dips.
 - **⚡ Live Market Quotes & Key Statistics**: Fetches realtime data via Yahoo Finance API including current price, daily change, high/low bounds, volume, 52-week ranges, market cap, and P/E ratios.
-- **🗂 Drag & Drop Watchlist**: Add, remove, and reorder stock symbols directly in your sidebar. Reordered watchlists persist locally and natively via Electron user configuration settings.
+- **🗂 Watchlist Management & Context Menu**: Add, reorder (drag & drop), and right-click any ticker in the sidebar to open a native macOS context menu for easy removal or quick viewing. Default watchlist features the top 3 US indexes and top 5 US stock market tickers.
 - **🏷 Multi-Mode Watchlist Badges**: Click any watchlist badge to toggle between displaying **Percentage Change** (`-1.86%`), **Price Change** (`-$7.41`), or **Market Capitalization** (`$3.08T`).
 - **⌨ Keyboard Shortcuts**: Press `Cmd + K` (or `Ctrl + K`) to immediately open the ticker search modal anywhere in the app.
 

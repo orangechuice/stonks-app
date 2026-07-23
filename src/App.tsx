@@ -6,7 +6,7 @@ import { SearchModal } from './components/SearchModal';
 import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
 
-const DEFAULT_SYMBOLS = ['^GSPC', 'AAPL', 'NVDA', 'GOOGL', 'MSFT', 'COIN', 'TSLA'];
+const DEFAULT_SYMBOLS = ['^GSPC', '^IXIC', '^DJI', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN'];
 const LOCAL_STORAGE_KEY = 'mac_stock_app_watchlist';
 
 export const App: React.FC = () => {
@@ -23,12 +23,17 @@ export const App: React.FC = () => {
     return DEFAULT_SYMBOLS;
   });
 
-  // Load Watchlist from Native Application Settings (Desktop) if available
+  // Load Watchlist & Settings from Native Application Settings (Desktop) if available
   useEffect(() => {
     if (window.electronAPI?.getSettings) {
       window.electronAPI.getSettings().then((settings) => {
-        if (settings && Array.isArray(settings.watchlist) && settings.watchlist.length > 0) {
-          setWatchlistSymbols(settings.watchlist);
+        if (settings) {
+          if (Array.isArray(settings.watchlist) && settings.watchlist.length > 0) {
+            setWatchlistSymbols(settings.watchlist);
+          }
+          if (settings.badgeDisplayMode && (settings.badgeDisplayMode === 'percent' || settings.badgeDisplayMode === 'priceChange' || settings.badgeDisplayMode === 'marketCap')) {
+            setBadgeDisplayMode(settings.badgeDisplayMode);
+          }
         }
       });
     }
@@ -56,18 +61,14 @@ export const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
-  // Save Watchlist to Native App Settings & LocalStorage
+  // Save Watchlist & Badge Display Mode to Native App Settings & LocalStorage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(watchlistSymbols));
-    if (window.electronAPI?.saveSettings) {
-      window.electronAPI.saveSettings({ watchlist: watchlistSymbols });
-    }
-  }, [watchlistSymbols]);
-
-  // Save Badge Display Mode to LocalStorage
-  useEffect(() => {
     localStorage.setItem('mac_stock_app_badge_mode', badgeDisplayMode);
-  }, [badgeDisplayMode]);
+    if (window.electronAPI?.saveSettings) {
+      window.electronAPI.saveSettings({ watchlist: watchlistSymbols, badgeDisplayMode });
+    }
+  }, [watchlistSymbols, badgeDisplayMode]);
 
   const handleToggleBadgeDisplayMode = () => {
     setBadgeDisplayMode((prev) => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import stonksIconUrl from '/stonks-icon.png?url';
 
 interface StonksIconProps {
   className?: string;
@@ -6,11 +7,11 @@ interface StonksIconProps {
   useImage?: boolean;
 }
 
-export const StonksIcon: React.FC<StonksIconProps> = ({ className = '', size = 22, useImage = true }) => {
+export const StonksIcon: React.FC<StonksIconProps> = ({ className = '', size = 22, useImage = false }) => {
   if (useImage) {
     return (
       <img
-        src="/stonks-icon.png"
+        src={stonksIconUrl}
         alt="Stonks Icon"
         width={size}
         height={size}

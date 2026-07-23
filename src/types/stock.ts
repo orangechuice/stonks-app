@@ -59,8 +59,8 @@ export interface ColorShade {
 declare global {
   interface Window {
     electronAPI?: {
-      getSettings: () => Promise<{ watchlist?: string[] }>;
-      saveSettings: (settings: { watchlist: string[] }) => Promise<boolean>;
+      getSettings: () => Promise<{ watchlist?: string[]; badgeDisplayMode?: BadgeDisplayMode }>;
+      saveSettings: (settings: { watchlist?: string[]; badgeDisplayMode?: BadgeDisplayMode }) => Promise<boolean>;
       closeWindow: () => void;
       minimizeWindow: () => void;
       maximizeWindow: () => void;

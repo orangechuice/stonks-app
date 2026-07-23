@@ -299,3 +299,76 @@ body {
 .h-screen { height: 100vh; }
 .w-screen { width: 100vw; }
 .overflow-hidden { overflow: hidden; }
+
+/* Watchlist Context Menu (macOS style) */
+.watchlist-context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 180px;
+  background: rgba(28, 28, 30, 0.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.2);
+  animation: contextMenuFade 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes contextMenuFade {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.watchlist-context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #F2F2F7;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.watchlist-context-menu-item:hover {
+  background: #0A84FF;
+  color: #FFFFFF;
+}
+
+.watchlist-context-menu-item.danger {
+  color: #FF453A;
+}
+
+.watchlist-context-menu-item.danger:hover {
+  background: #FF453A;
+  color: #FFFFFF;
+}
+
+.watchlist-context-menu-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 6px;
+}
+
+.watchlist-card .delete-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.watchlist-card:hover .delete-btn {
+  opacity: 1;
+}
+

@@ -18,7 +18,10 @@ function loadSettings() {
   } catch (err) {
     console.error('Failed to read settings file:', err);
   }
-  return { watchlist: ['^GSPC', 'AAPL', 'NVDA', 'GOOGL', 'MSFT', 'COIN', 'TSLA'] };
+  return {
+    watchlist: ['^GSPC', '^IXIC', '^DJI', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN'],
+    badgeDisplayMode: 'percent',
+  };
 }
 
 function saveSettings(settings) {

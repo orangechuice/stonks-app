@@ -36,7 +36,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; symbol: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Close context menu on outside click, Escape key, or scrolling
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClickOutside = () => setContextMenu(null);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    const handleScroll = () => setContextMenu(null);
+
+    window.addEventListener('click', handleClickOutside);
+    window.addEventListener('contextmenu', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('contextmenu', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [contextMenu]);
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -237,115 +259,144 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Watchlist Item Cards */}
       <div className="sidebar-item-list custom-scrollbar">
-        {watchlist.map((stock, index) => {
-          const isSelected = stock.symbol.toUpperCase() === selectedSymbol.toUpperCase();
-          const isDragging = draggedIndex === index;
-          const isDragOverAbove = dragOverIndex === index && draggedIndex !== null && draggedIndex > index;
-          const isDragOverBelow = dragOverIndex === index && draggedIndex !== null && draggedIndex < index;
-          const isOffline = stock.isOffline || stock.marketState === 'OFFLINE';
-          const shade = isOffline ? {
-            bgColor: 'rgba(255, 255, 255, 0.08)',
-            textColor: 'rgba(255, 255, 255, 0.4)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-            strokeColor: 'rgba(255, 255, 255, 0.2)',
-            fillGradientStart: 'transparent',
-            fillGradientEnd: 'transparent',
-            glowColor: 'transparent',
-            intensity: 0,
-            isPositive: false,
-          } : getColorShade(stock.regularMarketChangePercent);
-          const isPositive = stock.regularMarketChangePercent >= 0;
-
-          return (
-            <div
-              key={stock.symbol}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
-              onClick={() => onSelectSymbol(stock.symbol)}
-              className={`watchlist-card ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isDragOverAbove ? 'drag-over-above' : ''} ${isDragOverBelow ? 'drag-over-below' : ''}`}
+        {watchlist.length === 0 ? (
+          <div style={{ padding: '36px 16px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+            <p style={{ marginBottom: 12 }}>Your watchlist is empty.</p>
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#0A84FF',
+                color: '#FFF',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
-              {/* Drag Handle */}
-              <div className="drag-handle" title="Drag to reorder">
-                <GripVertical style={{ width: 13, height: 13 }} />
-              </div>
+              Add Tickers
+            </button>
+          </div>
+        ) : (
+          watchlist.map((stock, index) => {
+            const isSelected = stock.symbol.toUpperCase() === selectedSymbol.toUpperCase();
+            const isDragging = draggedIndex === index;
+            const isDragOverAbove = dragOverIndex === index && draggedIndex !== null && draggedIndex > index;
+            const isDragOverBelow = dragOverIndex === index && draggedIndex !== null && draggedIndex < index;
+            const isOffline = stock.isOffline || stock.marketState === 'OFFLINE';
+            const shade = isOffline ? {
+              bgColor: 'rgba(255, 255, 255, 0.08)',
+              textColor: 'rgba(255, 255, 255, 0.4)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              strokeColor: 'rgba(255, 255, 255, 0.2)',
+              fillGradientStart: 'transparent',
+              fillGradientEnd: 'transparent',
+              glowColor: 'transparent',
+              intensity: 0,
+              isPositive: false,
+            } : getColorShade(stock.regularMarketChangePercent);
+            const isPositive = stock.regularMarketChangePercent >= 0;
 
-              {/* Left Column: Symbol & Short Name */}
-              <div className="symbol-info">
-                <div className="symbol-ticker">{stock.symbol}</div>
-                <div className="symbol-name">{stock.shortName || stock.longName || stock.symbol}</div>
-              </div>
-
-              {/* Middle Mini Sparkline SVG */}
-              <div className="symbol-sparkline">
-                {!isOffline && stock.sparkline && stock.sparkline.length > 1 ? (
-                  <svg style={{ width: '100%', height: '100%', overflow: 'visible' }} viewBox="0 0 100 40">
-                    {(() => {
-                      const pts = stock.sparkline;
-                      const min = Math.min(...pts);
-                      const max = Math.max(...pts);
-                      const range = max - min || 1;
-                      const coords = pts.map((val, idx) => {
-                        const x = (idx / (pts.length - 1)) * 100;
-                        const y = 35 - ((val - min) / range) * 30;
-                        return `${x},${y}`;
-                      });
-                      return (
-                        <polyline
-                          fill="none"
-                          stroke={shade.strokeColor}
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          points={coords.join(' ')}
-                        />
-                      );
-                    })()}
-                  </svg>
-                ) : null}
-              </div>
-
-              {/* Right Column: Price & Dynamic Color Change Badge */}
-              <div className="symbol-price-col">
-                <div className="symbol-price">{isOffline ? '--' : formatCurrency(stock.regularMarketPrice, stock.currency)}</div>
-
-                {/* DYNAMIC SHADED BADGE (Clickable to toggle Percentage / Price Change / Market Cap) */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleBadgeDisplayMode();
-                  }}
-                  style={{
-                    backgroundColor: shade.bgColor,
-                    color: shade.textColor,
-                    borderColor: shade.borderColor,
-                    boxShadow: shade.glowColor !== 'transparent' ? `0 0 12px ${shade.glowColor}` : 'none',
-                    cursor: 'pointer',
-                  }}
-                  className="change-badge"
-                  title="Click to toggle display mode: Percentage / Change / Market Cap"
-                >
-                  {(() => {
-                    if (isOffline) return '--';
-                    if (badgeDisplayMode === 'priceChange') {
-                      const absChange = Math.abs(stock.regularMarketChange);
-                      const formatted = absChange > 0 && absChange < 1 ? stock.regularMarketChange.toFixed(3) : stock.regularMarketChange.toFixed(2);
-                      return `${isPositive ? '+' : ''}${formatted}`;
-                    }
-                    if (badgeDisplayMode === 'marketCap') {
-                      return formatCompactNumber(stock.marketCap);
-                    }
-                    // Default 'percent'
-                    return `${isPositive ? '+' : ''}${stock.regularMarketChangePercent.toFixed(2)}%`;
-                  })()}
+            return (
+              <div
+                key={stock.symbol}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                onClick={() => onSelectSymbol(stock.symbol)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const menuWidth = 180;
+                  const menuHeight = 90;
+                  const x = Math.min(e.clientX, window.innerWidth - menuWidth - 10);
+                  const y = Math.min(e.clientY, window.innerHeight - menuHeight - 10);
+                  setContextMenu({ x, y, symbol: stock.symbol });
+                }}
+                className={`watchlist-card ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isDragOverAbove ? 'drag-over-above' : ''} ${isDragOverBelow ? 'drag-over-below' : ''}`}
+              >
+                {/* Drag Handle */}
+                <div className="drag-handle" title="Drag to reorder">
+                  <GripVertical style={{ width: 13, height: 13 }} />
                 </div>
-              </div>
 
-              {/* Delete Button */}
-              {watchlist.length > 1 && (
+                {/* Left Column: Symbol & Short Name */}
+                <div className="symbol-info">
+                  <div className="symbol-ticker">{stock.symbol}</div>
+                  <div className="symbol-name">{stock.shortName || stock.longName || stock.symbol}</div>
+                </div>
+
+                {/* Middle Mini Sparkline SVG */}
+                <div className="symbol-sparkline">
+                  {!isOffline && stock.sparkline && stock.sparkline.length > 1 ? (
+                    <svg style={{ width: '100%', height: '100%', overflow: 'visible' }} viewBox="0 0 100 40">
+                      {(() => {
+                        const pts = stock.sparkline;
+                        const min = Math.min(...pts);
+                        const max = Math.max(...pts);
+                        const range = max - min || 1;
+                        const coords = pts.map((val, idx) => {
+                          const x = (idx / (pts.length - 1)) * 100;
+                          const y = 35 - ((val - min) / range) * 30;
+                          return `${x},${y}`;
+                        });
+                        return (
+                          <polyline
+                            fill="none"
+                            stroke={shade.strokeColor}
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            points={coords.join(' ')}
+                          />
+                        );
+                      })()}
+                    </svg>
+                  ) : null}
+                </div>
+
+                {/* Right Column: Price & Dynamic Color Change Badge */}
+                <div className="symbol-price-col">
+                  <div className="symbol-price">{isOffline ? '--' : formatCurrency(stock.regularMarketPrice, stock.currency)}</div>
+
+                  {/* DYNAMIC SHADED BADGE (Clickable to toggle Percentage / Price Change / Market Cap) */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleBadgeDisplayMode();
+                    }}
+                    style={{
+                      backgroundColor: shade.bgColor,
+                      color: shade.textColor,
+                      borderColor: shade.borderColor,
+                      boxShadow: shade.glowColor !== 'transparent' ? `0 0 12px ${shade.glowColor}` : 'none',
+                      cursor: 'pointer',
+                    }}
+                    className="change-badge"
+                    title="Click to toggle display mode: Percentage / Change / Market Cap"
+                  >
+                    {(() => {
+                      if (isOffline) return '--';
+                      if (badgeDisplayMode === 'priceChange') {
+                        const absChange = Math.abs(stock.regularMarketChange);
+                        const formatted = absChange > 0 && absChange < 1 ? stock.regularMarketChange.toFixed(3) : stock.regularMarketChange.toFixed(2);
+                        return `${isPositive ? '+' : ''}${formatted}`;
+                      }
+                      if (badgeDisplayMode === 'marketCap') {
+                        return formatCompactNumber(stock.marketCap);
+                      }
+                      // Default 'percent'
+                      return `${isPositive ? '+' : ''}${stock.regularMarketChangePercent.toFixed(2)}%`;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Delete Button (visible on card hover) */}
                 <button
+                  className="delete-btn"
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemoveTicker(stock.symbol);
@@ -354,29 +405,55 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     position: 'absolute',
                     top: '6px',
                     right: '6px',
-                    background: 'rgba(0,0,0,0.6)',
+                    background: 'rgba(0,0,0,0.65)',
                     border: 'none',
-                    color: 'rgba(255,255,255,0.4)',
-                    padding: '3px',
+                    color: 'rgba(255,255,255,0.7)',
+                    padding: '4px',
                     borderRadius: '50%',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: 0,
-                    transition: 'opacity 0.15s ease',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
-                  title="Remove Ticker"
+                  title={`Remove ${stock.symbol}`}
                 >
                   <Trash2 style={{ width: 11, height: 11 }} />
                 </button>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })
+        )}
       </div>
+
+      {/* Floating macOS Right-Click Context Menu */}
+      {contextMenu && (
+        <div
+          className="watchlist-context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="watchlist-context-menu-item"
+            onClick={() => {
+              onSelectSymbol(contextMenu.symbol);
+              setContextMenu(null);
+            }}
+          >
+            <span>View {contextMenu.symbol} Details</span>
+          </button>
+          <div className="watchlist-context-menu-divider" />
+          <button
+            className="watchlist-context-menu-item danger"
+            onClick={() => {
+              onRemoveTicker(contextMenu.symbol);
+              setContextMenu(null);
+            }}
+          >
+            <Trash2 style={{ width: 14, height: 14 }} />
+            <span>Remove {contextMenu.symbol}</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

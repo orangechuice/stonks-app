@@ -26,7 +26,7 @@ stonks-app/
 ├── src/
 │   ├── components/             # React UI components
 │   │   ├── Titlebar.tsx        # Frameless macOS title bar & window controls
-│   │   ├── Sidebar.tsx         # Watchlist sidebar (search, drag-and-drop reorder, badge toggles)
+│   │   ├── Sidebar.tsx         # Watchlist sidebar (search, drag-and-drop reorder, right-click context menu, badge toggles)
 │   │   ├── StockDetail.tsx     # Main asset overview, timeframe selector, key stats
 │   │   ├── StockChart.tsx      # SVG chart renderer with crosshairs & dynamic color gradients
 │   │   ├── SearchModal.tsx     # Spotlight-style search modal (Cmd+K)
