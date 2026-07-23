@@ -6,6 +6,15 @@ import { SearchModal } from './components/SearchModal';
 import { StockQuote, ChartDataPoint, Timeframe } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
 
+declare global {
+  interface Window {
+    electronAPI?: {
+      getSettings: () => Promise<{ watchlist?: string[] }>;
+      saveSettings: (settings: { watchlist: string[] }) => Promise<boolean>;
+    };
+  }
+}
+
 const DEFAULT_SYMBOLS = ['^GSPC', 'AAPL', 'NVDA', 'GOOGL', 'MSFT', 'COIN', 'TSLA'];
 const LOCAL_STORAGE_KEY = 'mac_stock_app_watchlist';
 
@@ -23,6 +32,17 @@ export const App: React.FC = () => {
     return DEFAULT_SYMBOLS;
   });
 
+  // Load Watchlist from Native Application Settings (Desktop) if available
+  useEffect(() => {
+    if (window.electronAPI?.getSettings) {
+      window.electronAPI.getSettings().then((settings) => {
+        if (settings && Array.isArray(settings.watchlist) && settings.watchlist.length > 0) {
+          setWatchlistSymbols(settings.watchlist);
+        }
+      });
+    }
+  }, []);
+
   const [selectedSymbol, setSelectedSymbol] = useState<string>(watchlistSymbols[0] || '^GSPC');
   const [watchlistQuotes, setWatchlistQuotes] = useState<StockQuote[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<StockQuote | null>(null);
@@ -35,9 +55,12 @@ export const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
-  // Save Watchlist to LocalStorage
+  // Save Watchlist to Native App Settings & LocalStorage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(watchlistSymbols));
+    if (window.electronAPI?.saveSettings) {
+      window.electronAPI.saveSettings({ watchlist: watchlistSymbols });
+    }
   }, [watchlistSymbols]);
 
   // Load Watchlist Quotes
