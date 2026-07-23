@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Trash2, X } from 'lucide-react';
-import { StockQuote, SearchResult, Timeframe } from '../types/stock';
-import { getColorShade, formatCurrency } from '../utils/colorUtils';
+import { Search, Plus, Trash2, X, GripVertical } from 'lucide-react';
+import { StockQuote, SearchResult, Timeframe, BadgeDisplayMode } from '../types/stock';
+import { getColorShade, formatCurrency, formatCompactNumber } from '../utils/colorUtils';
 import { searchTickers } from '../services/yahooFinanceApi';
 
 interface SidebarProps {
@@ -10,6 +10,9 @@ interface SidebarProps {
   onSelectSymbol: (symbol: string) => void;
   onAddTicker: (symbol: string) => void;
   onRemoveTicker: (symbol: string) => void;
+  onReorderWatchlist: (draggedIndex: number, targetIndex: number) => void;
+  badgeDisplayMode: BadgeDisplayMode;
+  onToggleBadgeDisplayMode: () => void;
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
   selectedTimeframe: Timeframe;
@@ -21,6 +24,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectSymbol,
   onAddTicker,
   onRemoveTicker,
+  onReorderWatchlist,
+  badgeDisplayMode,
+  onToggleBadgeDisplayMode,
   isSearchOpen,
   setIsSearchOpen,
   selectedTimeframe,
@@ -28,6 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -63,6 +71,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       const topSymbol = searchResults[0]?.symbol || searchQuery.trim().toUpperCase();
       handleSelectSearchResult(topSymbol);
     }
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== targetIndex) {
+      onReorderWatchlist(draggedIndex, targetIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -201,17 +237,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Watchlist Item Cards */}
       <div className="sidebar-item-list custom-scrollbar">
-        {watchlist.map((stock) => {
+        {watchlist.map((stock, index) => {
           const isSelected = stock.symbol.toUpperCase() === selectedSymbol.toUpperCase();
+          const isDragging = draggedIndex === index;
+          const isDragOverAbove = dragOverIndex === index && draggedIndex !== null && draggedIndex > index;
+          const isDragOverBelow = dragOverIndex === index && draggedIndex !== null && draggedIndex < index;
           const shade = getColorShade(stock.regularMarketChangePercent);
           const isPositive = stock.regularMarketChangePercent >= 0;
 
           return (
             <div
               key={stock.symbol}
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
               onClick={() => onSelectSymbol(stock.symbol)}
-              className={`watchlist-card ${isSelected ? 'selected' : ''}`}
+              className={`watchlist-card ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${isDragOverAbove ? 'drag-over-above' : ''} ${isDragOverBelow ? 'drag-over-below' : ''}`}
             >
+              {/* Drag Handle */}
+              <div className="drag-handle" title="Drag to reorder">
+                <GripVertical style={{ width: 13, height: 13 }} />
+              </div>
+
               {/* Left Column: Symbol & Short Name */}
               <div className="symbol-info">
                 <div className="symbol-ticker">{stock.symbol}</div>
@@ -251,19 +300,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="symbol-price-col">
                 <div className="symbol-price">{formatCurrency(stock.regularMarketPrice, stock.currency)}</div>
 
-                {/* DYNAMIC SHADED BADGE */}
+                {/* DYNAMIC SHADED BADGE (Clickable to toggle Percentage / Price Change / Market Cap) */}
                 <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBadgeDisplayMode();
+                  }}
                   style={{
                     backgroundColor: shade.bgColor,
                     color: shade.textColor,
                     borderColor: shade.borderColor,
                     boxShadow: shade.glowColor !== 'transparent' ? `0 0 12px ${shade.glowColor}` : 'none',
+                    cursor: 'pointer',
                   }}
                   className="change-badge"
-                  title={`Change: ${stock.regularMarketChange > 0 ? '+' : ''}${stock.regularMarketChange} (${stock.regularMarketChangePercent}%)`}
+                  title="Click to toggle display mode: Percentage / Change / Market Cap"
                 >
-                  {isPositive ? '+' : ''}
-                  {stock.regularMarketChangePercent.toFixed(2)}%
+                  {(() => {
+                    if (badgeDisplayMode === 'priceChange') {
+                      const absChange = Math.abs(stock.regularMarketChange);
+                      const formatted = absChange > 0 && absChange < 1 ? stock.regularMarketChange.toFixed(3) : stock.regularMarketChange.toFixed(2);
+                      return `${isPositive ? '+' : ''}${formatted}`;
+                    }
+                    if (badgeDisplayMode === 'marketCap') {
+                      return formatCompactNumber(stock.marketCap);
+                    }
+                    // Default 'percent'
+                    return `${isPositive ? '+' : ''}${stock.regularMarketChangePercent.toFixed(2)}%`;
+                  })()}
                 </div>
               </div>
 

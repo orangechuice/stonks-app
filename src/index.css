@@ -130,6 +130,69 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
+.watchlist-card.dragging {
+  opacity: 0.4;
+  transform: scale(0.97);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.watchlist-card.drag-over-above {
+  position: relative;
+}
+
+.watchlist-card.drag-over-above::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 4px;
+  right: 4px;
+  height: 3px;
+  background-color: #007AFF;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #007AFF;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.watchlist-card.drag-over-below {
+  position: relative;
+}
+
+.watchlist-card.drag-over-below::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 4px;
+  right: 4px;
+  height: 3px;
+  background-color: #007AFF;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #007AFF;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.25);
+  cursor: grab;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.watchlist-card:hover .drag-handle {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .symbol-info {
   flex: 1 1 auto;
   min-width: 0;
@@ -191,8 +254,18 @@ body {
   font-family: "JetBrains Mono", monospace;
   border: 1px solid;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: transform 0.1s ease, filter 0.15s ease, background-color 0.2s ease;
   display: inline-block;
+  user-select: none;
+  cursor: pointer;
+}
+
+.change-badge:hover {
+  filter: brightness(1.25);
+}
+
+.change-badge:active {
+  transform: scale(0.93);
 }
 
 /* Custom Scrollbar */

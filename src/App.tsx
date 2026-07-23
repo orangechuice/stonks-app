@@ -3,10 +3,8 @@ import { Titlebar } from './components/Titlebar';
 import { Sidebar } from './components/Sidebar';
 import { StockDetail } from './components/StockDetail';
 import { SearchModal } from './components/SearchModal';
-import { StockQuote, ChartDataPoint, Timeframe } from './types/stock';
+import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
-
-
 
 const DEFAULT_SYMBOLS = ['^GSPC', 'AAPL', 'NVDA', 'GOOGL', 'MSFT', 'COIN', 'TSLA'];
 const LOCAL_STORAGE_KEY = 'mac_stock_app_watchlist';
@@ -42,6 +40,16 @@ export const App: React.FC = () => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('1D');
   
+  const [badgeDisplayMode, setBadgeDisplayMode] = useState<BadgeDisplayMode>(() => {
+    try {
+      const saved = localStorage.getItem('mac_stock_app_badge_mode');
+      if (saved && (saved === 'percent' || saved === 'priceChange' || saved === 'marketCap')) {
+        return saved as BadgeDisplayMode;
+      }
+    } catch (e) {}
+    return 'percent';
+  });
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
@@ -55,6 +63,19 @@ export const App: React.FC = () => {
       window.electronAPI.saveSettings({ watchlist: watchlistSymbols });
     }
   }, [watchlistSymbols]);
+
+  // Save Badge Display Mode to LocalStorage
+  useEffect(() => {
+    localStorage.setItem('mac_stock_app_badge_mode', badgeDisplayMode);
+  }, [badgeDisplayMode]);
+
+  const handleToggleBadgeDisplayMode = () => {
+    setBadgeDisplayMode((prev) => {
+      if (prev === 'percent') return 'priceChange';
+      if (prev === 'priceChange') return 'marketCap';
+      return 'percent';
+    });
+  };
 
   // Load Watchlist Quotes for the active timeframe
   const loadWatchlistData = useCallback(async (timeframe: Timeframe = selectedTimeframe) => {
@@ -117,12 +138,30 @@ export const App: React.FC = () => {
     }
   };
 
-  // Global Keyboard Shortcuts (Cmd+K or Ctrl+K opens Search Spotlight)
+  // Reorder ticker in watchlist
+  const handleReorderWatchlist = (draggedIndex: number, targetIndex: number) => {
+    setWatchlistSymbols((prevSymbols) => {
+      const updatedSymbols = [...prevSymbols];
+      const [movedSymbol] = updatedSymbols.splice(draggedIndex, 1);
+      updatedSymbols.splice(targetIndex, 0, movedSymbol);
+      return updatedSymbols;
+    });
+
+    setWatchlistQuotes((prevQuotes) => {
+      const updatedQuotes = [...prevQuotes];
+      const [movedQuote] = updatedQuotes.splice(draggedIndex, 1);
+      updatedQuotes.splice(targetIndex, 0, movedQuote);
+      return updatedQuotes;
+    });
+  };
+
+  // Global Keyboard Shortcuts (Cmd+K or Ctrl+K opens Sidebar Search)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsSearchModalOpen((prev) => !prev);
+        setIsSidebarOpen(true);
+        setIsSearchOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -137,7 +176,6 @@ export const App: React.FC = () => {
         isRefreshing={isRefreshing}
         toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         isSidebarOpen={isSidebarOpen}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
       />
 
       {/* Main App Body */}
@@ -150,6 +188,9 @@ export const App: React.FC = () => {
             onSelectSymbol={setSelectedSymbol}
             onAddTicker={handleAddTicker}
             onRemoveTicker={handleRemoveTicker}
+            onReorderWatchlist={handleReorderWatchlist}
+            badgeDisplayMode={badgeDisplayMode}
+            onToggleBadgeDisplayMode={handleToggleBadgeDisplayMode}
             isSearchOpen={isSearchOpen}
             setIsSearchOpen={setIsSearchOpen}
             selectedTimeframe={selectedTimeframe}

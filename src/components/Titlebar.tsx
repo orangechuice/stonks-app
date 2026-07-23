@@ -1,12 +1,11 @@
 import React from 'react';
-import { RefreshCw, Search, Sidebar as SidebarIcon } from 'lucide-react';
+import { RefreshCw, Sidebar as SidebarIcon } from 'lucide-react';
 
 interface TitlebarProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
-  onOpenSearch: () => void;
 }
 
 export const Titlebar: React.FC<TitlebarProps> = ({
@@ -14,7 +13,6 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   isRefreshing,
   toggleSidebar,
   isSidebarOpen,
-  onOpenSearch,
 }) => {
   const handleClose = () => {
     if (window.electronAPI?.closeWindow) {
@@ -88,26 +86,6 @@ export const Titlebar: React.FC<TitlebarProps> = ({
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '160px', justifyContent: 'flex-end', WebkitAppRegion: 'no-drag' } as any}>
-        <button
-          onClick={onOpenSearch}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: 12,
-            color: 'rgba(255,255,255,0.7)',
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            padding: '4px 10px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-          }}
-        >
-          <Search style={{ width: 13, height: 13 }} />
-          <span>Search</span>
-          <kbd style={{ fontSize: 10, background: 'rgba(255,255,255,0.1)', padding: '1px 4px', borderRadius: 3, fontFamily: 'monospace', color: 'rgba(255,255,255,0.5)' }}>⌘K</kbd>
-        </button>
-
         <button
           onClick={onRefresh}
           disabled={isRefreshing}

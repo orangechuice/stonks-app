@@ -105,13 +105,22 @@ export function formatCurrency(value: number, currency = 'USD'): string {
 }
 
 /**
- * Format compact numbers for Market Cap / Volume (e.g. 2.989B, 15.4M)
+ * Format compact numbers for Market Cap / Volume (e.g. 4.172T, 7.408B, 43.77B)
  */
 export function formatCompactNumber(value: number | undefined): string {
-  if (value === undefined || value === null || isNaN(value) || value === 0) return '-';
-  if (value >= 1e12) return (value / 1e12).toFixed(3) + 'T';
-  if (value >= 1e9) return (value / 1e9).toFixed(3) + 'B';
-  if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+  if (value === undefined || value === null || isNaN(value) || value === 0) return '--';
+  if (value >= 1e12) {
+    const val = value / 1e12;
+    return val >= 10 ? val.toFixed(2) + 'T' : val.toFixed(3) + 'T';
+  }
+  if (value >= 1e9) {
+    const val = value / 1e9;
+    return val >= 100 ? val.toFixed(1) + 'B' : val >= 10 ? val.toFixed(2) + 'B' : val.toFixed(3) + 'B';
+  }
+  if (value >= 1e6) {
+    const val = value / 1e6;
+    return val >= 100 ? val.toFixed(1) + 'M' : val.toFixed(2) + 'M';
+  }
   if (value >= 1e3) return (value / 1e3).toFixed(1) + 'K';
   return value.toLocaleString('en-US');
 }
