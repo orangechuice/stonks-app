@@ -82,6 +82,12 @@ npm run dev
 ```
 *Runs frontend only at `http://localhost:3000` (useful for fast UI tweaking without Electron process).*
 
+### Clean Build Artifacts
+```bash
+npm run clean
+```
+*Removes previous build directories (`dist/` and `dist_electron/`). Automatically called before builds.*
+
 ### Type Check & Build Web Distribution
 ```bash
 npm run build
@@ -91,7 +97,7 @@ npm run build
 ```bash
 npm run electron:build
 ```
-*Outputs executable macOS `.dmg` and `.zip` applications into `dist_electron/`.*
+*Cleans previous build files (`dist/`, `dist_electron/`), builds web distribution, and packages standalone macOS `.dmg` and `.zip` applications into `dist_electron/`.*
 
 ---
 

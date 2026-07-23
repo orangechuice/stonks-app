@@ -95,8 +95,9 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 | :--- | :--- | :--- |
 | **Electron Dev Mode** | `npm run electron:dev` | Launches Vite dev server and runs the Electron app simultaneously with hot-reloading. |
 | **Web Dev Mode** | `npm run dev` | Runs the web app independently in your browser at `http://localhost:3000`. |
-| **Build Web Bundle** | `npm run build` | Compiles TypeScript and builds production distribution in `dist/`. |
-| **Build Desktop App** | `npm run electron:build` | Packages the application into standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
+| **Clean Artifacts** | `npm run clean` | Cleans old build output folders (`dist/` and `dist_electron/`). |
+| **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production distribution in `dist/`. |
+| **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages the app into standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
 
 ---
 
