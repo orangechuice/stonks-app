@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ChartDataPoint, Timeframe, StockQuote } from '../types/stock';
 import { getColorShade, formatCurrency } from '../utils/colorUtils';
 
@@ -21,6 +21,19 @@ export const StockChart: React.FC<StockChartProps> = ({
 }) => {
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; data: ChartDataPoint } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(800);
+
+  // ResizeObserver to dynamically scale SVG chart width to 100% of container
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0] && entries[0].contentRect.width > 0) {
+        setContainerWidth(entries[0].contentRect.width);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Compute performance percentage for current chart range
   const firstPrice = chartData[0]?.close || quote.previousClose || quote.regularMarketPrice;
@@ -47,17 +60,17 @@ export const StockChart: React.FC<StockChartProps> = ({
   const yMax = maxPrice + priceMargin;
   const yRange = yMax - yMin || 1;
 
-  // SVG Canvas dimensions
-  const svgWidth = 800;
+  // Responsive SVG Canvas dimensions
+  const svgWidth = Math.max(320, containerWidth);
   const svgHeight = 360;
-  const paddingRight = 60;
+  const paddingRight = 65;
   const paddingBottom = 30;
   const paddingTop = 20;
 
   const chartW = svgWidth - paddingRight;
   const chartH = svgHeight - paddingBottom - paddingTop;
 
-  // Build SVG Path string
+  // Build SVG Path string dynamically stretching to 100% width
   const points = chartData.map((d, i) => {
     const x = (i / (chartData.length - 1 || 1)) * chartW;
     const y = paddingTop + chartH - ((d.close - yMin) / yRange) * chartH;
@@ -91,64 +104,68 @@ export const StockChart: React.FC<StockChartProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }} ref={containerRef}>
-      {/* Larger macOS Segmented Control Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.06)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: 10,
-          padding: 4,
-          gap: 4,
-          userSelect: 'none',
-        }}>
-          {TIMEFRAMES.map((tf) => {
-            const isSelected = selectedTimeframe === tf;
-            return (
-              <button
-                key={tf}
-                onClick={() => onSelectTimeframe(tf)}
-                style={{
-                  padding: '8px 18px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
-                  borderRadius: '7px',
-                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
-                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'transparent',
-                  color: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
-                  boxShadow: isSelected ? '0 2px 10px rgba(0, 0, 0, 0.35)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  minWidth: 46,
-                  textAlign: 'center',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.color = '#FFFFFF';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
-                  }
-                }}
-              >
-                {tf}
-              </button>
-            );
-          })}
-        </div>
+      {/* 100% Fully Responsive Segmented Timeframe Control Bar */}
+      <div style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: 10,
+        padding: 4,
+        gap: 3,
+        marginBottom: 24,
+        overflowX: 'auto',
+        userSelect: 'none',
+      }}>
+        {TIMEFRAMES.map((tf) => {
+          const isSelected = selectedTimeframe === tf;
+          return (
+            <button
+              key={tf}
+              onClick={() => onSelectTimeframe(tf)}
+              style={{
+                flex: '1 1 0%',
+                minWidth: 0,
+                padding: '8px 0',
+                fontSize: '13px',
+                fontWeight: 700,
+                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                borderRadius: '7px',
+                border: isSelected ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
+                backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'transparent',
+                color: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+                boxShadow: isSelected ? '0 2px 10px rgba(0, 0, 0, 0.35)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.color = '#FFFFFF';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isSelected) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                }
+              }}
+            >
+              {tf}
+            </button>
+          );
+        })}
       </div>
 
-      {/* SVG Interactive Chart */}
+      {/* SVG Interactive Dynamic Full-Width Chart */}
       <div style={{ position: 'relative', width: '100%', height: 360 }}>
         <svg
           style={{ width: '100%', height: '100%', cursor: 'crosshair', overflow: 'visible' }}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          preserveAspectRatio="none"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverPoint(null)}
         >
