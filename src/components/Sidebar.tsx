@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Trash2, X } from 'lucide-react';
-import { StockQuote, SearchResult } from '../types/stock';
+import { StockQuote, SearchResult, Timeframe } from '../types/stock';
 import { getColorShade, formatCurrency } from '../utils/colorUtils';
 import { searchTickers } from '../services/yahooFinanceApi';
 
@@ -12,6 +12,7 @@ interface SidebarProps {
   onRemoveTicker: (symbol: string) => void;
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
+  selectedTimeframe: Timeframe;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -22,6 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onRemoveTicker,
   isSearchOpen,
   setIsSearchOpen,
+  selectedTimeframe,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -182,7 +184,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         letterSpacing: '0.05em',
         borderBottom: '1px solid rgba(255,255,255,0.05)'
       }}>
-        <span>Watchlist ({watchlist.length})</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span>Watchlist ({watchlist.length})</span>
+          <span style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            color: '#FFFFFF',
+            padding: '1px 6px',
+            borderRadius: 4,
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: '0.02em',
+          }}>{selectedTimeframe}</span>
+        </div>
         <span>Market Closed</span>
       </div>
 

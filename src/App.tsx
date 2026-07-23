@@ -56,23 +56,22 @@ export const App: React.FC = () => {
     }
   }, [watchlistSymbols]);
 
-  // Load Watchlist Quotes
-  const loadWatchlistData = useCallback(async () => {
+  // Load Watchlist Quotes for the active timeframe
+  const loadWatchlistData = useCallback(async (timeframe: Timeframe = selectedTimeframe) => {
     setIsRefreshing(true);
-    const quotes: StockQuote[] = [];
-
-    for (const sym of watchlistSymbols) {
-      try {
-        const { quote } = await fetchStockData(sym, '1D');
-        quotes.push(quote);
-      } catch (err) {
-        console.error(`Error fetching quote for ${sym}:`, err);
-      }
+    try {
+      const results = await Promise.all(
+        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe).catch(() => null))
+      );
+      const quotes: StockQuote[] = results
+        .filter((res): res is { quote: StockQuote; chart: ChartDataPoint[] } => res !== null)
+        .map((res) => res.quote);
+      setWatchlistQuotes(quotes);
+    } catch (err) {
+      console.error('Error fetching watchlist quotes:', err);
     }
-
-    setWatchlistQuotes(quotes);
     setIsRefreshing(false);
-  }, [watchlistSymbols]);
+  }, [watchlistSymbols, selectedTimeframe]);
 
   // Load Detail Chart & Selected Stock Data
   const loadDetailData = useCallback(async (symbol: string, timeframe: Timeframe) => {
@@ -87,10 +86,10 @@ export const App: React.FC = () => {
     setIsLoadingChart(false);
   }, []);
 
-  // Initial Load & Selected Symbol Changes
+  // Sync Watchlist & Detail Data whenever Selected Symbol or Timeframe changes
   useEffect(() => {
-    loadWatchlistData();
-  }, [loadWatchlistData]);
+    loadWatchlistData(selectedTimeframe);
+  }, [selectedTimeframe, watchlistSymbols, loadWatchlistData]);
 
   useEffect(() => {
     if (selectedSymbol) {
@@ -153,6 +152,7 @@ export const App: React.FC = () => {
             onRemoveTicker={handleRemoveTicker}
             isSearchOpen={isSearchOpen}
             setIsSearchOpen={setIsSearchOpen}
+            selectedTimeframe={selectedTimeframe}
           />
         )}
 
