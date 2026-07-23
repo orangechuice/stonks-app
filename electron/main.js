@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Application Settings File Path: ~/Library/Application Support/com.antigravity.macstockapp/settings.json
 const USER_DATA_PATH = app.getPath('userData');
 const SETTINGS_FILE = path.join(USER_DATA_PATH, 'settings.json');
 
@@ -41,9 +40,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    minWidth: 720,
-    minHeight: 500,
-    titleBarStyle: 'hiddenInset', // Native macOS Traffic Lights integrated into app titlebar
+    minWidth: 740,
+    minHeight: 520,
+    titleBarStyle: 'hiddenInset',
     vibrancy: 'under-window',
     visualEffectState: 'active',
     backgroundColor: '#0E0E10',
@@ -51,6 +50,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false, // Allow cross-origin stock API requests inside native app
     },
   });
 
@@ -59,11 +59,32 @@ function createWindow() {
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // Load built index.html with relative asset base
+    const indexPath = path.join(__dirname, '../dist/index.html');
+    mainWindow.loadFile(indexPath);
   }
 }
 
-// Register IPC handlers for saving/loading ticker settings
+// Window Controls IPC
+ipcMain.on('window-close', () => {
+  if (mainWindow) mainWindow.close();
+});
+
+ipcMain.on('window-minimize', () => {
+  if (mainWindow) mainWindow.minimize();
+});
+
+ipcMain.on('window-maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+// App Settings IPC
 ipcMain.handle('get-settings', () => {
   return loadSettings();
 });

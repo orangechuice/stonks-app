@@ -1,7 +1,7 @@
 export type Timeframe = '1D' | '1W' | '1M' | '3M' | '6M' | 'YTD' | '1Y' | '5Y' | 'ALL';
 
 export interface ChartDataPoint {
-  timestamp: number; // Unix timestamp in seconds or ms
+  timestamp: number;
   dateStr: string;
   close: number;
   open?: number;
@@ -50,6 +50,18 @@ export interface ColorShade {
   fillGradientStart: string;
   fillGradientEnd: string;
   glowColor: string;
-  intensity: number; // 0.0 to 1.0
+  intensity: number;
   isPositive: boolean;
+}
+
+declare global {
+  interface Window {
+    electronAPI?: {
+      getSettings: () => Promise<{ watchlist?: string[] }>;
+      saveSettings: (settings: { watchlist: string[] }) => Promise<boolean>;
+      closeWindow: () => void;
+      minimizeWindow: () => void;
+      maximizeWindow: () => void;
+    };
+  }
 }

@@ -6,14 +6,7 @@ import { SearchModal } from './components/SearchModal';
 import { StockQuote, ChartDataPoint, Timeframe } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      getSettings: () => Promise<{ watchlist?: string[] }>;
-      saveSettings: (settings: { watchlist: string[] }) => Promise<boolean>;
-    };
-  }
-}
+
 
 const DEFAULT_SYMBOLS = ['^GSPC', 'AAPL', 'NVDA', 'GOOGL', 'MSFT', 'COIN', 'TSLA'];
 const LOCAL_STORAGE_KEY = 'mac_stock_app_watchlist';

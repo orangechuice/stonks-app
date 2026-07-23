@@ -16,13 +16,46 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   isSidebarOpen,
   onOpenSearch,
 }) => {
+  const handleClose = () => {
+    if (window.electronAPI?.closeWindow) {
+      window.electronAPI.closeWindow();
+    }
+  };
+
+  const handleMinimize = () => {
+    if (window.electronAPI?.minimizeWindow) {
+      window.electronAPI.minimizeWindow();
+    }
+  };
+
+  const handleMaximize = () => {
+    if (window.electronAPI?.maximizeWindow) {
+      window.electronAPI.maximizeWindow();
+    }
+  };
+
   return (
-    <header className="mac-titlebar">
-      {/* Traffic Light Buttons (Close, Minimize, Expand) */}
-      <div className="traffic-light-container">
-        <div className="traffic-light" style={{ backgroundColor: '#FF5F56', borderColor: '#E0443E' }} title="Close" />
-        <div className="traffic-light" style={{ backgroundColor: '#FFBD2E', borderColor: '#DEA123' }} title="Minimize" />
-        <div className="traffic-light" style={{ backgroundColor: '#27C93F', borderColor: '#1AAB29' }} title="Expand" />
+    <header className="mac-titlebar" style={{ WebkitAppRegion: 'drag' } as any}>
+      {/* Traffic Light Window Controls */}
+      <div className="traffic-light-container" style={{ WebkitAppRegion: 'no-drag' } as any}>
+        <div
+          className="traffic-light"
+          style={{ backgroundColor: '#FF5F56', borderColor: '#E0443E' }}
+          onClick={handleClose}
+          title="Close Window"
+        />
+        <div
+          className="traffic-light"
+          style={{ backgroundColor: '#FFBD2E', borderColor: '#DEA123' }}
+          onClick={handleMinimize}
+          title="Minimize Window"
+        />
+        <div
+          className="traffic-light"
+          style={{ backgroundColor: '#27C93F', borderColor: '#1AAB29' }}
+          onClick={handleMaximize}
+          title="Expand Window"
+        />
 
         <button
           onClick={toggleSidebar}
@@ -54,7 +87,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
       </div>
 
       {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '160px', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '160px', justifyContent: 'flex-end', WebkitAppRegion: 'no-drag' } as any}>
         <button
           onClick={onOpenSearch}
           style={{
