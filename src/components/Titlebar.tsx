@@ -33,33 +33,39 @@ export const Titlebar: React.FC<TitlebarProps> = ({
     }
   };
 
+  const isElectron = Boolean(window.electronAPI);
+
   return (
     <header className="mac-titlebar" style={{ WebkitAppRegion: 'drag' } as any}>
       {/* Traffic Light Window Controls */}
       <div className="traffic-light-container" style={{ WebkitAppRegion: 'no-drag' } as any}>
-        <div
-          className="traffic-light"
-          style={{ backgroundColor: '#FF5F56', borderColor: '#E0443E' }}
-          onClick={handleClose}
-          title="Close Window"
-        />
-        <div
-          className="traffic-light"
-          style={{ backgroundColor: '#FFBD2E', borderColor: '#DEA123' }}
-          onClick={handleMinimize}
-          title="Minimize Window"
-        />
-        <div
-          className="traffic-light"
-          style={{ backgroundColor: '#27C93F', borderColor: '#1AAB29' }}
-          onClick={handleMaximize}
-          title="Expand Window"
-        />
+        {!isElectron && (
+          <>
+            <div
+              className="traffic-light"
+              style={{ backgroundColor: '#FF5F56', borderColor: '#E0443E' }}
+              onClick={handleClose}
+              title="Close Window"
+            />
+            <div
+              className="traffic-light"
+              style={{ backgroundColor: '#FFBD2E', borderColor: '#DEA123' }}
+              onClick={handleMinimize}
+              title="Minimize Window"
+            />
+            <div
+              className="traffic-light"
+              style={{ backgroundColor: '#27C93F', borderColor: '#1AAB29' }}
+              onClick={handleMaximize}
+              title="Expand Window"
+            />
+          </>
+        )}
 
         <button
           onClick={toggleSidebar}
           style={{
-            marginLeft: '12px',
+            marginLeft: isElectron ? '70px' : '12px',
             padding: '6px',
             borderRadius: '6px',
             background: isSidebarOpen ? 'rgba(255,255,255,0.12)' : 'transparent',
