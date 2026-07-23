@@ -32,7 +32,7 @@ export const StockChart: React.FC<StockChartProps> = ({
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="w-full h-80 flex items-center justify-center text-white/40 text-sm">
+      <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>
         {isLoading ? 'Loading stock chart...' : 'No chart data available.'}
       </div>
     );
@@ -77,7 +77,6 @@ export const StockChart: React.FC<StockChartProps> = ({
     const mouseX = e.clientX - rect.left;
     const normalizedX = (mouseX / rect.width) * svgWidth;
 
-    // Find nearest point
     let closest = points[0];
     let minDistance = Infinity;
     for (const pt of points) {
@@ -91,28 +90,64 @@ export const StockChart: React.FC<StockChartProps> = ({
   };
 
   return (
-    <div className="flex flex-col w-full" ref={containerRef}>
-      {/* Timeframe Selector Pills */}
-      <div className="flex items-center space-x-1 border-b border-white/10 pb-3 mb-4 select-none">
-        {TIMEFRAMES.map((tf) => (
-          <button
-            key={tf}
-            onClick={() => onSelectTimeframe(tf)}
-            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-              selectedTimeframe === tf
-                ? 'bg-white/20 text-white shadow'
-                : 'text-white/50 hover:text-white hover:bg-white/10'
-            }`}
-          >
-            {tf}
-          </button>
-        ))}
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }} ref={containerRef}>
+      {/* Larger macOS Segmented Control Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 10,
+          padding: 4,
+          gap: 4,
+          userSelect: 'none',
+        }}>
+          {TIMEFRAMES.map((tf) => {
+            const isSelected = selectedTimeframe === tf;
+            return (
+              <button
+                key={tf}
+                onClick={() => onSelectTimeframe(tf)}
+                style={{
+                  padding: '8px 18px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                  borderRadius: '7px',
+                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
+                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'transparent',
+                  color: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+                  boxShadow: isSelected ? '0 2px 10px rgba(0, 0, 0, 0.35)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  minWidth: 46,
+                  textAlign: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+                  }
+                }}
+              >
+                {tf}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* SVG Interactive Chart */}
-      <div className="relative w-full h-[360px]">
+      <div style={{ position: 'relative', width: '100%', height: 360 }}>
         <svg
-          className="w-full h-full cursor-crosshair overflow-visible"
+          style={{ width: '100%', height: '100%', cursor: 'crosshair', overflow: 'visible' }}
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverPoint(null)}
@@ -124,7 +159,7 @@ export const StockChart: React.FC<StockChartProps> = ({
             </linearGradient>
           </defs>
 
-          {/* Horizontal Grid lines */}
+          {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((pct, idx) => {
             const yVal = paddingTop + chartH * pct;
             const priceVal = yMax - pct * yRange;
@@ -142,7 +177,7 @@ export const StockChart: React.FC<StockChartProps> = ({
                   x={chartW + 8}
                   y={yVal + 4}
                   fill="rgba(255, 255, 255, 0.35)"
-                  fontSize="10"
+                  fontSize="11"
                   fontFamily="JetBrains Mono, monospace"
                 >
                   {priceVal.toFixed(2)}
@@ -179,7 +214,6 @@ export const StockChart: React.FC<StockChartProps> = ({
           {/* Hover Crosshair & Data Indicator */}
           {hoverPoint && (
             <g>
-              {/* Vertical Crosshair Line */}
               <line
                 x1={hoverPoint.x}
                 y1={paddingTop}
@@ -188,7 +222,6 @@ export const StockChart: React.FC<StockChartProps> = ({
                 stroke="rgba(255, 255, 255, 0.4)"
                 strokeDasharray="3 3"
               />
-              {/* Target Dot */}
               <circle
                 cx={hoverPoint.x}
                 cy={hoverPoint.y}
@@ -212,7 +245,7 @@ export const StockChart: React.FC<StockChartProps> = ({
                 x={xVal}
                 y={svgHeight - 8}
                 fill="rgba(255, 255, 255, 0.4)"
-                fontSize="10"
+                fontSize="11"
                 textAnchor={idx === 0 ? 'start' : idx === 1 ? 'end' : 'middle'}
               >
                 {pt.dateStr}
@@ -225,13 +258,22 @@ export const StockChart: React.FC<StockChartProps> = ({
         {hoverPoint && (
           <div
             style={{
+              position: 'absolute',
+              top: 32,
               left: `${(hoverPoint.x / svgWidth) * 100}%`,
               transform: 'translate(-50%, -100%)',
+              pointerEvents: 'none',
+              backgroundColor: '#1E1E22',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
+              textAlign: 'center',
+              zIndex: 10,
             }}
-            className="absolute top-8 pointer-events-none bg-[#1E1E22] border border-white/20 px-3 py-1.5 rounded-lg shadow-xl text-center z-10"
           >
-            <div className="text-[10px] text-white/50">{hoverPoint.data.dateStr}</div>
-            <div className="font-bold text-xs text-white font-mono">
+            <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>{hoverPoint.data.dateStr}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF', fontFamily: 'monospace' }}>
               {formatCurrency(hoverPoint.data.close, quote.currency)}
             </div>
           </div>
