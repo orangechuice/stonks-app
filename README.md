@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/stonks-icon.png" width="128" height="128" alt="Stonks Logo" />
+  <img src="public/icon.png" width="128" height="128" alt="Stonks Logo" style="border-radius: 28px;" />
 </p>
 
 <h1 align="center">Stonks</h1>
@@ -109,8 +109,7 @@ stonks-app/
 │   ├── main.js              # Electron main process entry point
 │   └── preload.js           # Secure contextBridge IPC preload script
 ├── public/
-│   ├── icon.png             # Application desktop icon (512x512)
-│   ├── stonks-icon.png      # Application high-res icon
+│   ├── icon.png             # Application desktop & web icon
 │   └── screenshot.png       # Application UI screenshot preview
 ├── src/
 │   ├── components/

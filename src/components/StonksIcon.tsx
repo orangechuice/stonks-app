@@ -1,5 +1,5 @@
 import React from 'react';
-import stonksIconUrl from '/stonks-icon.png?url';
+import stonksIconUrl from '/icon.png?url';
 
 interface StonksIconProps {
   className?: string;
