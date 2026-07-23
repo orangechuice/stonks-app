@@ -1,5 +1,6 @@
 import React from 'react';
 import { RefreshCw, Sidebar as SidebarIcon } from 'lucide-react';
+import { StonksIcon } from './StonksIcon';
 
 interface TitlebarProps {
   onRefresh: () => void;
@@ -76,8 +77,9 @@ export const Titlebar: React.FC<TitlebarProps> = ({
 
       {/* Center Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <StonksIcon size={20} />
         <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.9)', letterSpacing: '0.02em' }}>
-          Stocks
+          Stonks
         </span>
         <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
           macOS

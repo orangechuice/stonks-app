@@ -242,7 +242,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const isDragging = draggedIndex === index;
           const isDragOverAbove = dragOverIndex === index && draggedIndex !== null && draggedIndex > index;
           const isDragOverBelow = dragOverIndex === index && draggedIndex !== null && draggedIndex < index;
-          const shade = getColorShade(stock.regularMarketChangePercent);
+          const isOffline = stock.isOffline || stock.marketState === 'OFFLINE';
+          const shade = isOffline ? {
+            bgColor: 'rgba(255, 255, 255, 0.08)',
+            textColor: 'rgba(255, 255, 255, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            strokeColor: 'rgba(255, 255, 255, 0.2)',
+            fillGradientStart: 'transparent',
+            fillGradientEnd: 'transparent',
+            glowColor: 'transparent',
+            intensity: 0,
+            isPositive: false,
+          } : getColorShade(stock.regularMarketChangePercent);
           const isPositive = stock.regularMarketChangePercent >= 0;
 
           return (
@@ -269,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Middle Mini Sparkline SVG */}
               <div className="symbol-sparkline">
-                {stock.sparkline && stock.sparkline.length > 1 ? (
+                {!isOffline && stock.sparkline && stock.sparkline.length > 1 ? (
                   <svg style={{ width: '100%', height: '100%', overflow: 'visible' }} viewBox="0 0 100 40">
                     {(() => {
                       const pts = stock.sparkline;
@@ -298,7 +309,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Right Column: Price & Dynamic Color Change Badge */}
               <div className="symbol-price-col">
-                <div className="symbol-price">{formatCurrency(stock.regularMarketPrice, stock.currency)}</div>
+                <div className="symbol-price">{isOffline ? '--' : formatCurrency(stock.regularMarketPrice, stock.currency)}</div>
 
                 {/* DYNAMIC SHADED BADGE (Clickable to toggle Percentage / Price Change / Market Cap) */}
                 <div
@@ -317,6 +328,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   title="Click to toggle display mode: Percentage / Change / Market Cap"
                 >
                   {(() => {
+                    if (isOffline) return '--';
                     if (badgeDisplayMode === 'priceChange') {
                       const absChange = Math.abs(stock.regularMarketChange);
                       const formatted = absChange > 0 && absChange < 1 ? stock.regularMarketChange.toFixed(3) : stock.regularMarketChange.toFixed(2);

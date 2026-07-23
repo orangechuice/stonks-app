@@ -3,7 +3,7 @@ import { ChartDataPoint, Timeframe, StockQuote } from '../types/stock';
 import { getColorShade, formatCurrency } from '../utils/colorUtils';
 
 interface StockChartProps {
-  quote: StockQuote;
+  quote?: StockQuote | null;
   chartData: ChartDataPoint[];
   selectedTimeframe: Timeframe;
   onSelectTimeframe: (tf: Timeframe) => void;
@@ -35,26 +35,102 @@ export const StockChart: React.FC<StockChartProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        {/* Timeframe Control Bar */}
+        <div style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 10,
+          padding: 4,
+          gap: 3,
+          marginBottom: 24,
+          overflowX: 'auto',
+          userSelect: 'none',
+        }}>
+          {TIMEFRAMES.map((tf) => {
+            const isSelected = selectedTimeframe === tf;
+            return (
+              <button
+                key={tf}
+                onClick={() => onSelectTimeframe(tf)}
+                style={{
+                  flex: '1 1 0%',
+                  minWidth: 0,
+                  padding: '8px 0',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
+                  borderRadius: '7px',
+                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
+                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.22)' : 'transparent',
+                  color: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tf}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Chart Unavailable Message */}
+        <div style={{
+          width: '100%',
+          height: 300,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+        }}>
+          {isLoading ? (
+            <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 14, fontWeight: 500 }}>
+              Loading stock chart...
+            </div>
+          ) : (
+            <>
+              <div style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: 'rgba(255, 255, 255, 0.7)',
+                letterSpacing: '-0.01em',
+                marginBottom: 6,
+              }}>
+                Chart Unavailable
+              </div>
+              <div style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: 'rgba(255, 255, 255, 0.4)',
+              }}>
+                Stocks isn’t connected to the internet.
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // Compute performance percentage for current chart range
-  const firstPrice = chartData[0]?.close || quote.previousClose || quote.regularMarketPrice;
-  const currentHoverPrice = hoverPoint ? hoverPoint.data.close : quote.regularMarketPrice;
+  const firstPrice = chartData[0]?.close || quote?.previousClose || quote?.regularMarketPrice || 0;
+  const currentHoverPrice = hoverPoint ? hoverPoint.data.close : (quote?.regularMarketPrice || firstPrice);
   const periodChange = currentHoverPrice - firstPrice;
   const periodChangePercent = firstPrice !== 0 ? (periodChange / firstPrice) * 100 : 0;
   
   const shade = getColorShade(periodChangePercent);
 
-  if (!chartData || chartData.length === 0) {
-    return (
-      <div style={{ width: '100%', height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>
-        {isLoading ? 'Loading stock chart...' : 'No chart data available.'}
-      </div>
-    );
-  }
-
   // Calculate Min / Max Bounds for SVG scaling
   const prices = chartData.map((d) => d.close);
-  const minPrice = Math.min(...prices, quote.previousClose || Infinity);
-  const maxPrice = Math.max(...prices, quote.previousClose || -Infinity);
+  const minPrice = Math.min(...prices, quote?.previousClose ?? Infinity);
+  const maxPrice = Math.max(...prices, quote?.previousClose ?? -Infinity);
   const priceMargin = (maxPrice - minPrice) * 0.08 || 1.0;
   const yMin = Math.max(0, minPrice - priceMargin);
   const yMax = maxPrice + priceMargin;
@@ -81,7 +157,7 @@ export const StockChart: React.FC<StockChartProps> = ({
   const areaD = `${pathD} L ${chartW} ${paddingTop + chartH} L 0 ${paddingTop + chartH} Z`;
 
   // Previous Close Dashed Reference Y-coordinate
-  const prevCloseY = paddingTop + chartH - ((quote.previousClose - yMin) / yRange) * chartH;
+  const prevCloseY = quote?.previousClose ? paddingTop + chartH - ((quote.previousClose - yMin) / yRange) * chartH : -999;
 
   // Mouse move handler for hover tooltip
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -291,7 +367,7 @@ export const StockChart: React.FC<StockChartProps> = ({
           >
             <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>{hoverPoint.data.dateStr}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF', fontFamily: 'monospace' }}>
-              {formatCurrency(hoverPoint.data.close, quote.currency)}
+              {formatCurrency(hoverPoint.data.close, quote?.currency)}
             </div>
           </div>
         )}

@@ -4,7 +4,8 @@ import { getColorShade, formatCurrency, formatCompactNumber } from '../utils/col
 import { StockChart } from './StockChart';
 
 interface StockDetailProps {
-  quote: StockQuote;
+  symbol: string;
+  quote: StockQuote | null;
   chartData: ChartDataPoint[];
   selectedTimeframe: Timeframe;
   onSelectTimeframe: (tf: Timeframe) => void;
@@ -12,14 +13,23 @@ interface StockDetailProps {
 }
 
 export const StockDetail: React.FC<StockDetailProps> = ({
+  symbol,
   quote,
   chartData,
   selectedTimeframe,
   onSelectTimeframe,
   isLoading,
 }) => {
-  const shade = getColorShade(quote.regularMarketChangePercent);
-  const isPositive = quote.regularMarketChangePercent >= 0;
+  const shade = quote ? getColorShade(quote.regularMarketChangePercent) : {
+    bgColor: 'rgba(255, 255, 255, 0.08)',
+    textColor: 'rgba(255, 255, 255, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    glowColor: 'transparent',
+  };
+  const isPositive = quote ? quote.regularMarketChangePercent >= 0 : false;
+
+  const displaySymbol = quote?.symbol || symbol.toUpperCase();
+  const displayShortName = quote?.shortName || quote?.longName || '';
 
   return (
     <main style={{
@@ -36,22 +46,24 @@ export const StockDetail: React.FC<StockDetailProps> = ({
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', color: '#FFF' }}>{quote.symbol}</h1>
-            <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)' }}>{quote.shortName || quote.longName}</span>
+            <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', color: '#FFF' }}>{displaySymbol}</h1>
+            {displayShortName && (
+              <span style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255, 255, 255, 0.5)' }}>{displayShortName}</span>
+            )}
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginTop: 4, display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span>{quote.exchangeName || 'US Market'}</span>
+            <span>{quote?.exchangeName || 'US Market'}</span>
             <span>·</span>
-            <span>{quote.currency || 'USD'}</span>
+            <span>{quote?.currency || 'USD'}</span>
             <span>·</span>
-            <span style={{ textTransform: 'capitalize' }}>{quote.marketState || 'Closed'}</span>
+            <span style={{ textTransform: 'capitalize' }}>{quote?.marketState || 'Offline'}</span>
           </div>
         </div>
 
         {/* Big Price & Dynamic Change Badge */}
         <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <div style={{ fontSize: 32, fontWeight: 700, fontFamily: '"JetBrains Mono", monospace', color: '#FFF' }}>
-            {formatCurrency(quote.regularMarketPrice, quote.currency)}
+            {quote ? formatCurrency(quote.regularMarketPrice, quote.currency) : '--'}
           </div>
 
           {/* DYNAMIC SHADED CHANGE BADGE */}
@@ -72,9 +84,15 @@ export const StockDetail: React.FC<StockDetailProps> = ({
               transition: 'all 0.2s ease',
             }}
           >
-            {isPositive ? '+' : ''}
-            {quote.regularMarketChange.toFixed(2)} ({isPositive ? '+' : ''}
-            {quote.regularMarketChangePercent.toFixed(2)}%)
+            {quote ? (
+              <>
+                {isPositive ? '+' : ''}
+                {quote.regularMarketChange.toFixed(2)} ({isPositive ? '+' : ''}
+                {quote.regularMarketChangePercent.toFixed(2)}%)
+              </>
+            ) : (
+              '--'
+            )}
           </div>
         </div>
       </div>
@@ -115,43 +133,57 @@ export const StockDetail: React.FC<StockDetailProps> = ({
         }}>
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>Open</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCurrency(quote.regularMarketOpen)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCurrency(quote.regularMarketOpen) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>High</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCurrency(quote.regularMarketDayHigh)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCurrency(quote.regularMarketDayHigh) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>Low</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCurrency(quote.regularMarketDayLow)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCurrency(quote.regularMarketDayLow) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>Volume</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCompactNumber(quote.regularMarketVolume)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCompactNumber(quote.regularMarketVolume) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>52W High</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCurrency(quote.fiftyTwoWeekHigh)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCurrency(quote.fiftyTwoWeekHigh) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>52W Low</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCurrency(quote.fiftyTwoWeekLow)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCurrency(quote.fiftyTwoWeekLow) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>Market Cap</div>
-            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>{formatCompactNumber(quote.marketCap)}</div>
+            <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
+              {quote ? formatCompactNumber(quote.marketCap) : '--'}
+            </div>
           </div>
 
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>P/E Ratio</div>
             <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
-              {quote.peRatio ? quote.peRatio.toFixed(2) : '-'}
+              {quote?.peRatio ? quote.peRatio.toFixed(2) : '--'}
             </div>
           </div>
         </div>

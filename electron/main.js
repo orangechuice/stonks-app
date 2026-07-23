@@ -38,6 +38,8 @@ let mainWindow = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    title: 'Stonks',
+    icon: path.join(__dirname, '../public/icon.png'),
     width: 1200,
     height: 800,
     minWidth: 740,
@@ -94,6 +96,12 @@ ipcMain.handle('save-settings', (_event, settings) => {
 });
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin' && app.dock) {
+    const iconPath = path.join(__dirname, '../public/icon.png');
+    if (fs.existsSync(iconPath)) {
+      app.dock.setIcon(iconPath);
+    }
+  }
   createWindow();
 
   app.on('activate', () => {

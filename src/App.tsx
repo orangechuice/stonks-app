@@ -84,9 +84,29 @@ export const App: React.FC = () => {
       const results = await Promise.all(
         watchlistSymbols.map((sym) => fetchStockData(sym, timeframe).catch(() => null))
       );
-      const quotes: StockQuote[] = results
-        .filter((res): res is { quote: StockQuote; chart: ChartDataPoint[] } => res !== null)
-        .map((res) => res.quote);
+      const quotes: StockQuote[] = results.map((res, idx) => {
+        if (res) return res.quote;
+        const sym = watchlistSymbols[idx];
+        return {
+          symbol: sym,
+          shortName: sym,
+          exchangeName: 'US Market',
+          currency: 'USD',
+          regularMarketPrice: 0,
+          regularMarketChange: 0,
+          regularMarketChangePercent: 0,
+          previousClose: 0,
+          regularMarketOpen: 0,
+          regularMarketDayHigh: 0,
+          regularMarketDayLow: 0,
+          regularMarketVolume: 0,
+          fiftyTwoWeekHigh: 0,
+          fiftyTwoWeekLow: 0,
+          sparkline: [],
+          marketState: 'OFFLINE',
+          isOffline: true,
+        };
+      });
       setWatchlistQuotes(quotes);
     } catch (err) {
       console.error('Error fetching watchlist quotes:', err);
@@ -98,11 +118,18 @@ export const App: React.FC = () => {
   const loadDetailData = useCallback(async (symbol: string, timeframe: Timeframe) => {
     setIsLoadingChart(true);
     try {
-      const { quote, chart } = await fetchStockData(symbol, timeframe);
-      setSelectedQuote(quote);
-      setChartData(chart);
+      const res = await fetchStockData(symbol, timeframe);
+      if (res) {
+        setSelectedQuote(res.quote);
+        setChartData(res.chart);
+      } else {
+        setSelectedQuote(null);
+        setChartData([]);
+      }
     } catch (err) {
       console.error(`Error loading detail for ${symbol}:`, err);
+      setSelectedQuote(null);
+      setChartData([]);
     }
     setIsLoadingChart(false);
   }, []);
@@ -133,25 +160,18 @@ export const App: React.FC = () => {
     const nextList = watchlistSymbols.filter((s) => s.toUpperCase() !== cleanSym);
     setWatchlistSymbols(nextList);
 
-    if (selectedSymbol.toUpperCase() === cleanSym && nextList.length > 0) {
-      setSelectedSymbol(nextList[0]);
+    if (selectedSymbol.toUpperCase() === cleanSym) {
+      setSelectedSymbol(nextList[0] || '');
     }
   };
 
   // Reorder ticker in watchlist
   const handleReorderWatchlist = (draggedIndex: number, targetIndex: number) => {
-    setWatchlistSymbols((prevSymbols) => {
-      const updatedSymbols = [...prevSymbols];
-      const [movedSymbol] = updatedSymbols.splice(draggedIndex, 1);
-      updatedSymbols.splice(targetIndex, 0, movedSymbol);
-      return updatedSymbols;
-    });
-
-    setWatchlistQuotes((prevQuotes) => {
-      const updatedQuotes = [...prevQuotes];
-      const [movedQuote] = updatedQuotes.splice(draggedIndex, 1);
-      updatedQuotes.splice(targetIndex, 0, movedQuote);
-      return updatedQuotes;
+    setWatchlistSymbols((prev) => {
+      const updated = [...prev];
+      const [removed] = updated.splice(draggedIndex, 1);
+      updated.splice(targetIndex, 0, removed);
+      return updated;
     });
   };
 
@@ -169,13 +189,16 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0E0E10] text-white overflow-hidden font-sans">
-      {/* Titlebar Header */}
+    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#000000', overflow: 'hidden' }}>
+      {/* Title Bar */}
       <Titlebar
-        onRefresh={loadWatchlistData}
-        isRefreshing={isRefreshing}
-        toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
         isSidebarOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onRefresh={() => {
+          loadWatchlistData(selectedTimeframe);
+          if (selectedSymbol) loadDetailData(selectedSymbol, selectedTimeframe);
+        }}
+        isRefreshing={isRefreshing}
       />
 
       {/* Main App Body */}
@@ -198,19 +221,14 @@ export const App: React.FC = () => {
         )}
 
         {/* Stock Detail & Chart View */}
-        {selectedQuote ? (
-          <StockDetail
-            quote={selectedQuote}
-            chartData={chartData}
-            selectedTimeframe={selectedTimeframe}
-            onSelectTimeframe={setSelectedTimeframe}
-            isLoading={isLoadingChart}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-white/40 text-sm">
-            Loading stock details...
-          </div>
-        )}
+        <StockDetail
+          symbol={selectedSymbol}
+          quote={selectedQuote}
+          chartData={chartData}
+          selectedTimeframe={selectedTimeframe}
+          onSelectTimeframe={setSelectedTimeframe}
+          isLoading={isLoadingChart}
+        />
       </div>
 
       {/* Spotlight Command Palette Search Modal */}

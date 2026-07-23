@@ -31,7 +31,8 @@ export interface StockQuote {
   peRatio?: number;
   avgVolume?: number;
   sparkline: number[];
-  marketState?: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST';
+  marketState?: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST' | 'OFFLINE';
+  isOffline?: boolean;
 }
 
 export interface SearchResult {
