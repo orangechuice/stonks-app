@@ -30,7 +30,8 @@
 ## ✨ Features
 
 - ** Native macOS Experience**: Built with a sleek dark-mode palette (`#0E0E10`), frameless inset title bar with traffic light window controls, and smooth background translucency.
-- **📊 Interactive Stock Charts**: View market trends across flexible timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`) complete with dynamic SVG line gradients, range axes, hover tooltips, and price crosshairs.
+- **📊 Interactive Stock Charts**: View market trends across flexible timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`, `CUSTOM`) complete with dynamic SVG line gradients, range axes, hover tooltips, price crosshairs, and custom start/end date range selection.
+- **📅 Custom Date Ranges**: Select any custom start and end date (including single full trading days or multi-day periods) to calculate price changes and render custom charts.
 - **🟢 Dynamic Color Indicators**: Visual feedback that dynamically adapts gradient overlays and badge highlights—emerald green (`#30D158`) for gains and ruby red (`#FF453A`) for market dips.
 - **⚡ Live Market Quotes & Key Statistics**: Fetches realtime data via Yahoo Finance API including current price, daily change, high/low bounds, volume, 52-week ranges, market cap, and P/E ratios.
 - **🗂 Watchlist Management & Context Menu**: Add, reorder (drag & drop), and right-click any ticker in the sidebar to open a native macOS context menu for easy removal or quick viewing. Default watchlist features the top 3 US indexes and top 5 US stock market tickers.
@@ -113,6 +114,7 @@ stonks-app/
 │   └── screenshot.png       # Application UI screenshot preview
 ├── src/
 │   ├── components/
+│   │   ├── DateRangePickerModal.tsx # Custom date range selector modal
 │   │   ├── SearchModal.tsx  # Spotlight-style search modal
 │   │   ├── Sidebar.tsx      # Watchlist sidebar with drag-and-drop
 │   │   ├── StockChart.tsx   # SVG stock chart renderer
@@ -125,6 +127,8 @@ stonks-app/
 │   ├── App.tsx              # Core app container & state management
 │   ├── index.css            # Custom CSS & design system utilities
 │   └── main.tsx             # React DOM root entry point
+├── index.html
+├── LICENSE                  # MIT open-source license
 ├── package.json             # App scripts and Electron build config
 ├── tsconfig.json            # TypeScript compiler configuration
 └── vite.config.ts           # Vite build tool configuration
@@ -134,4 +138,14 @@ stonks-app/
 
 ## 📄 License
 
-This project is open-source and available under the MIT License.
+This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
+## ⚖️ Legal & Financial Data Disclaimer
+
+**Stonks** is an open-source software project built solely for educational, research, and personal monitoring purposes.
+- Financial data and stock market quotes rendered by this application are sourced from unofficial public endpoints.
+- This application is **not** intended to provide financial, investment, legal, or tax advice.
+- No warranty or guarantee is provided regarding the accuracy, completeness, or timeliness of market data.
+

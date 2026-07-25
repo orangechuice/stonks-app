@@ -2,6 +2,12 @@
   "name": "stonks-app",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
+  "author": "orangechuice",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orangechuice/stonks-app.git"
+  },
   "type": "module",
   "main": "electron/main.js",
   "scripts": {
@@ -29,7 +35,7 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.antigravity.stonksapp",
+    "appId": "com.orangechuice.stonksapp",
     "productName": "Stonks",
     "directories": {
       "output": "dist_electron"

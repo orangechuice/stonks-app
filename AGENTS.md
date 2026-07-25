@@ -1,4 +1,4 @@
-# Developer Guide & Repository Context (`CLAUDE.md`)
+# Developer Guide & Repository Context (`AGENTS.md`)
 
 This document provides a comprehensive overview of the **Stonks** codebase, its architecture, design principles, development workflows, and guidelines for adding new features.
 
@@ -26,7 +26,7 @@ stonks-app/
 ├── src/
 │   ├── components/             # React UI components
 │   │   ├── Titlebar.tsx        # Frameless macOS title bar & window controls
-│   │   ├── Sidebar.tsx         # Watchlist sidebar (search, drag-and-drop reorder, badge toggles)
+│   │   ├── Sidebar.tsx         # Watchlist sidebar (search, drag-and-drop reorder, right-click context menu, badge toggles)
 │   │   ├── StockDetail.tsx     # Main asset overview, timeframe selector, key stats
 │   │   ├── StockChart.tsx      # SVG chart renderer with crosshairs & dynamic color gradients
 │   │   ├── SearchModal.tsx     # Spotlight-style search modal (Cmd+K)
@@ -37,7 +37,9 @@ stonks-app/
 │   │   └── stock.ts            # TypeScript interfaces & window.electronAPI type definitions
 │   ├── App.tsx                 # Core app state coordinator & global hotkeys
 │   ├── index.css               # Design system tokens, glassmorphism, macOS styling
-│   └── main.tsx                # React DOM render root
+│   ├── main.tsx                # React DOM render root
+│   └── index.html
+├── LICENSE                     # MIT Open Source License
 └── package.json                # Project dependencies, dev scripts, electron-builder config
 ```
 
@@ -49,6 +51,7 @@ stonks-app/
    - Handles IPC listeners:
      - `window-close`, `window-minimize`, `window-maximize`
      - `get-settings`, `save-settings`
+     - `fetch-stock-api` (bypasses CORS in main process with `webSecurity: true`)
 
 2. **IPC Preload Bridge (`electron/preload.js`)**:
    - Exposes safe, context-isolated APIs to the renderer process via `window.electronAPI`.
@@ -82,6 +85,12 @@ npm run dev
 ```
 *Runs frontend only at `http://localhost:3000` (useful for fast UI tweaking without Electron process).*
 
+### Clean Build Artifacts
+```bash
+npm run clean
+```
+*Removes previous build directories (`dist/` and `dist_electron/`). Automatically called before builds.*
+
 ### Type Check & Build Web Distribution
 ```bash
 npm run build
@@ -91,7 +100,7 @@ npm run build
 ```bash
 npm run electron:build
 ```
-*Outputs executable macOS `.dmg` and `.zip` applications into `dist_electron/`.*
+*Cleans previous build files (`dist/`, `dist_electron/`), builds web distribution, and packages standalone macOS `.dmg` and `.zip` applications into `dist_electron/`.*
 
 ---
 
@@ -141,12 +150,12 @@ npm run electron:build
 
 ---
 
-## 📝 Guidelines for Updating Documentation (`CLAUDE.md` & `README.md`)
+## 📝 Guidelines for Updating Documentation (`AGENTS.md` & `README.md`)
 
 **IMPORTANT FOR AI AGENTS & DEVELOPERS:**
-Whenever you modify the codebase architecture, add new dependencies, implement new IPC channels, or add user-facing features, you **MUST** update both `CLAUDE.md` and `README.md`:
+Whenever you modify the codebase architecture, add new dependencies, implement new IPC channels, or add user-facing features, you **MUST** update both `AGENTS.md` and `README.md`:
 
-1. **New Components or Files**: Add them to the Repository Structure section in both `CLAUDE.md` and `README.md`.
-2. **New IPC Methods**: Document the IPC handlers in the Architecture & Codebase Map section of `CLAUDE.md`.
+1. **New Components or Files**: Add them to the Repository Structure section in both `AGENTS.md` and `README.md`.
+2. **New IPC Methods**: Document the IPC handlers in the Architecture & Codebase Map section of `AGENTS.md`.
 3. **New Scripts / Dependencies**: Update the package scripts table and tech stack lists in both files.
 4. **UI or Aesthetic Changes**: Update screenshots (`public/screenshot.png`) if the visual layout changes significantly.

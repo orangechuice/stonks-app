@@ -3,7 +3,7 @@ import { Titlebar } from './components/Titlebar';
 import { Sidebar } from './components/Sidebar';
 import { StockDetail } from './components/StockDetail';
 import { SearchModal } from './components/SearchModal';
-import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode } from './types/stock';
+import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode, CustomDateRange } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
 
 const DEFAULT_SYMBOLS = ['^GSPC', '^IXIC', '^DJI', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN'];
@@ -45,6 +45,11 @@ export const App: React.FC = () => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('1D');
   
+  const [customDateRange, setCustomDateRange] = useState<CustomDateRange>(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return { startDate: todayStr, endDate: todayStr };
+  });
+
   const [badgeDisplayMode, setBadgeDisplayMode] = useState<BadgeDisplayMode>(() => {
     try {
       const saved = localStorage.getItem('mac_stock_app_badge_mode');
@@ -79,11 +84,14 @@ export const App: React.FC = () => {
   };
 
   // Load Watchlist Quotes for the active timeframe
-  const loadWatchlistData = useCallback(async (timeframe: Timeframe = selectedTimeframe) => {
+  const loadWatchlistData = useCallback(async (
+    timeframe: Timeframe = selectedTimeframe,
+    customRange: CustomDateRange = customDateRange
+  ) => {
     setIsRefreshing(true);
     try {
       const results = await Promise.all(
-        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe).catch(() => null))
+        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe, customRange).catch(() => null))
       );
       const quotes: StockQuote[] = results.map((res, idx) => {
         if (res) return res.quote;
@@ -113,13 +121,17 @@ export const App: React.FC = () => {
       console.error('Error fetching watchlist quotes:', err);
     }
     setIsRefreshing(false);
-  }, [watchlistSymbols, selectedTimeframe]);
+  }, [watchlistSymbols, selectedTimeframe, customDateRange]);
 
   // Load Detail Chart & Selected Stock Data
-  const loadDetailData = useCallback(async (symbol: string, timeframe: Timeframe) => {
+  const loadDetailData = useCallback(async (
+    symbol: string,
+    timeframe: Timeframe,
+    customRange: CustomDateRange = customDateRange
+  ) => {
     setIsLoadingChart(true);
     try {
-      const res = await fetchStockData(symbol, timeframe);
+      const res = await fetchStockData(symbol, timeframe, customRange);
       if (res) {
         setSelectedQuote(res.quote);
         setChartData(res.chart);
@@ -133,18 +145,28 @@ export const App: React.FC = () => {
       setChartData([]);
     }
     setIsLoadingChart(false);
-  }, []);
+  }, [customDateRange]);
+
+  const handleApplyCustomRange = (range: CustomDateRange) => {
+    setCustomDateRange(range);
+    setSelectedTimeframe('CUSTOM');
+    loadWatchlistData('CUSTOM', range);
+    if (selectedSymbol) {
+      loadDetailData(selectedSymbol, 'CUSTOM', range);
+    }
+  };
 
   // Sync Watchlist & Detail Data whenever Selected Symbol or Timeframe changes
   useEffect(() => {
-    loadWatchlistData(selectedTimeframe);
-  }, [selectedTimeframe, watchlistSymbols, loadWatchlistData]);
+    loadWatchlistData(selectedTimeframe, customDateRange);
+  }, [selectedTimeframe, watchlistSymbols, loadWatchlistData, customDateRange]);
 
   useEffect(() => {
     if (selectedSymbol) {
-      loadDetailData(selectedSymbol, selectedTimeframe);
+      loadDetailData(selectedSymbol, selectedTimeframe, customDateRange);
     }
-  }, [selectedSymbol, selectedTimeframe, loadDetailData]);
+  }, [selectedSymbol, selectedTimeframe, loadDetailData, customDateRange]);
+
 
   // Add ticker to watchlist
   const handleAddTicker = (symbol: string) => {
@@ -229,6 +251,8 @@ export const App: React.FC = () => {
           selectedTimeframe={selectedTimeframe}
           onSelectTimeframe={setSelectedTimeframe}
           isLoading={isLoadingChart}
+          customRange={customDateRange}
+          onApplyCustomRange={handleApplyCustomRange}
         />
       </div>
 

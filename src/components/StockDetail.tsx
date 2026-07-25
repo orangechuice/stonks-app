@@ -1,5 +1,5 @@
 import React from 'react';
-import { StockQuote, ChartDataPoint, Timeframe } from '../types/stock';
+import { StockQuote, ChartDataPoint, Timeframe, CustomDateRange } from '../types/stock';
 import { getColorShade, formatCurrency, formatCompactNumber } from '../utils/colorUtils';
 import { StockChart } from './StockChart';
 
@@ -10,6 +10,8 @@ interface StockDetailProps {
   selectedTimeframe: Timeframe;
   onSelectTimeframe: (tf: Timeframe) => void;
   isLoading: boolean;
+  customRange?: CustomDateRange;
+  onApplyCustomRange?: (range: CustomDateRange) => void;
 }
 
 export const StockDetail: React.FC<StockDetailProps> = ({
@@ -19,6 +21,8 @@ export const StockDetail: React.FC<StockDetailProps> = ({
   selectedTimeframe,
   onSelectTimeframe,
   isLoading,
+  customRange,
+  onApplyCustomRange,
 }) => {
   const shade = quote ? getColorShade(quote.regularMarketChangePercent) : {
     bgColor: 'rgba(255, 255, 255, 0.08)',
@@ -112,6 +116,8 @@ export const StockDetail: React.FC<StockDetailProps> = ({
           selectedTimeframe={selectedTimeframe}
           onSelectTimeframe={onSelectTimeframe}
           isLoading={isLoading}
+          customRange={customRange}
+          onApplyCustomRange={onApplyCustomRange}
         />
       </div>
 

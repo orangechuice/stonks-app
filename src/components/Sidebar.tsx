@@ -90,8 +90,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      const topSymbol = searchResults[0]?.symbol || searchQuery.trim().toUpperCase();
-      handleSelectSearchResult(topSymbol);
+      if (searchResults.length > 0) {
+        handleSelectSearchResult(searchResults[0].symbol);
+      }
     }
   };
 
@@ -218,11 +219,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 );
               })
             ) : (
-              <div
-                onClick={() => handleSelectSearchResult(searchQuery.trim().toUpperCase())}
-                style={{ padding: 14, textAlign: 'center', fontSize: 12, color: '#30D158', cursor: 'pointer', fontWeight: 600 }}
-              >
-                Press Enter to add "{searchQuery.trim().toUpperCase()}"
+              <div style={{ padding: 16, textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+                No tickers found
               </div>
             )}
           </div>

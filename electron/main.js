@@ -55,7 +55,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, // Allow cross-origin stock API requests inside native app
+      webSecurity: true, // Secure origin isolation; stock APIs proxied via main process IPC
     },
   });
 
@@ -69,6 +69,22 @@ function createWindow() {
     mainWindow.loadFile(indexPath);
   }
 }
+
+// Stock Data IPC Fetch Handler (Runs securely in Main Process without disabling webSecurity)
+ipcMain.handle('fetch-stock-api', async (_event, url) => {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+      },
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    console.error('Main process fetch error:', url, err);
+  }
+  return null;
+});
 
 // Window Controls IPC
 ipcMain.on('window-close', () => {

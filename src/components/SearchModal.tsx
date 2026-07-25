@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, X, ArrowRight } from 'lucide-react';
+import { Search, Plus, X } from 'lucide-react';
 import { SearchResult, StockQuote } from '../types/stock';
 import { searchTickers } from '../services/yahooFinanceApi';
 
@@ -54,8 +54,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && query.trim()) {
-      const topSymbol = results[0]?.symbol || query.trim().toUpperCase();
-      handleSelectSymbol(topSymbol);
+      if (results.length > 0) {
+        handleSelectSymbol(results[0].symbol);
+      }
     } else if (e.key === 'Escape') {
       onClose();
     }
@@ -179,24 +180,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               );
             })
           ) : query.trim() ? (
-            <div
-              onClick={() => handleSelectSymbol(query.trim().toUpperCase())}
-              style={{
-                padding: '16px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                color: '#FFF',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            >
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700 }}>Add "{query.trim().toUpperCase()}"</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Press Enter to search & load live symbol quote</div>
-              </div>
-              <ArrowRight style={{ width: 16, height: 16, color: 'rgba(255,255,255,0.6)' }} />
+            <div style={{ padding: '24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+              No stock tickers found matching "{query.trim()}"
             </div>
           ) : (
             <div style={{ padding: '24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>

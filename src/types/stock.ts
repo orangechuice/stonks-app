@@ -1,5 +1,10 @@
-export type Timeframe = '1D' | '1W' | '1M' | '3M' | '6M' | 'YTD' | '1Y' | '5Y' | 'ALL';
+export type Timeframe = '1D' | '1W' | '1M' | '3M' | '6M' | 'YTD' | '1Y' | '5Y' | 'ALL' | 'CUSTOM';
 export type BadgeDisplayMode = 'percent' | 'priceChange' | 'marketCap';
+
+export interface CustomDateRange {
+  startDate: string; // YYYY-MM-DD
+  endDate: string;   // YYYY-MM-DD
+}
 
 export interface ChartDataPoint {
   timestamp: number;
@@ -59,6 +64,7 @@ export interface ColorShade {
 declare global {
   interface Window {
     electronAPI?: {
+      fetchStockApi?: (url: string) => Promise<any>;
       getSettings: () => Promise<{ watchlist?: string[]; badgeDisplayMode?: BadgeDisplayMode }>;
       saveSettings: (settings: { watchlist?: string[]; badgeDisplayMode?: BadgeDisplayMode }) => Promise<boolean>;
       closeWindow: () => void;

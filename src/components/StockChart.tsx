@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChartDataPoint, Timeframe, StockQuote } from '../types/stock';
+import { ChartDataPoint, Timeframe, StockQuote, CustomDateRange } from '../types/stock';
 import { getColorShade, formatCurrency } from '../utils/colorUtils';
+import { DateRangePickerModal } from './DateRangePickerModal';
+import { Calendar } from 'lucide-react';
 
 interface StockChartProps {
   quote?: StockQuote | null;
@@ -8,9 +10,11 @@ interface StockChartProps {
   selectedTimeframe: Timeframe;
   onSelectTimeframe: (tf: Timeframe) => void;
   isLoading: boolean;
+  customRange?: CustomDateRange;
+  onApplyCustomRange?: (range: CustomDateRange) => void;
 }
 
-const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'ALL'];
+const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'ALL', 'CUSTOM'];
 
 export const StockChart: React.FC<StockChartProps> = ({
   quote,
@@ -18,8 +22,14 @@ export const StockChart: React.FC<StockChartProps> = ({
   selectedTimeframe,
   onSelectTimeframe,
   isLoading,
+  customRange = {
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+  },
+  onApplyCustomRange,
 }) => {
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; data: ChartDataPoint } | null>(null);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>(800);
 
@@ -35,6 +45,31 @@ export const StockChart: React.FC<StockChartProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  const handleTimeframeClick = (tf: Timeframe) => {
+    onSelectTimeframe(tf);
+    if (tf === 'CUSTOM') {
+      setIsDatePickerOpen(true);
+    }
+  };
+
+  const handleApplyRange = (range: CustomDateRange) => {
+    if (onApplyCustomRange) {
+      onApplyCustomRange(range);
+    }
+  };
+
+  const formatCustomBadgeLabel = () => {
+    if (!customRange.startDate || !customRange.endDate) return 'Custom';
+    const s = new Date(customRange.startDate + 'T00:00:00');
+    const e = new Date(customRange.endDate + 'T00:00:00');
+    const sStr = s.toLocaleDateString([], { month: 'short', day: 'numeric', year: '2-digit' });
+    const eStr = e.toLocaleDateString([], { month: 'short', day: 'numeric', year: '2-digit' });
+    if (customRange.startDate === customRange.endDate) {
+      return `${sStr} (1 Day)`;
+    }
+    return `${sStr} – ${eStr}`;
+  };
+
   if (!chartData || chartData.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -48,7 +83,7 @@ export const StockChart: React.FC<StockChartProps> = ({
           borderRadius: 10,
           padding: 4,
           gap: 3,
-          marginBottom: 24,
+          marginBottom: 16,
           overflowX: 'auto',
           userSelect: 'none',
         }}>
@@ -57,7 +92,7 @@ export const StockChart: React.FC<StockChartProps> = ({
             return (
               <button
                 key={tf}
-                onClick={() => onSelectTimeframe(tf)}
+                onClick={() => handleTimeframeClick(tf)}
                 style={{
                   flex: '1 1 0%',
                   minWidth: 0,
@@ -72,13 +107,32 @@ export const StockChart: React.FC<StockChartProps> = ({
                   cursor: 'pointer',
                   textAlign: 'center',
                   whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
                 }}
               >
-                {tf}
+                {tf === 'CUSTOM' ? (
+                  <>
+                    <Calendar size={13} />
+                    <span>{isSelected ? formatCustomBadgeLabel() : 'CUSTOM'}</span>
+                  </>
+                ) : (
+                  tf
+                )}
               </button>
             );
           })}
         </div>
+
+        {/* Date Picker Modal */}
+        <DateRangePickerModal
+          isOpen={isDatePickerOpen}
+          onClose={() => setIsDatePickerOpen(false)}
+          currentRange={customRange}
+          onApplyRange={handleApplyRange}
+        />
 
         {/* Chart Unavailable Message */}
         <div style={{
@@ -110,7 +164,7 @@ export const StockChart: React.FC<StockChartProps> = ({
                 fontWeight: 500,
                 color: 'rgba(255, 255, 255, 0.4)',
               }}>
-                Stocks isn’t connected to the internet.
+                Stocks isn’t connected to the internet or no market data found for date range.
               </div>
             </>
           )}
@@ -190,7 +244,7 @@ export const StockChart: React.FC<StockChartProps> = ({
         borderRadius: 10,
         padding: 4,
         gap: 3,
-        marginBottom: 24,
+        marginBottom: selectedTimeframe === 'CUSTOM' ? 12 : 24,
         overflowX: 'auto',
         userSelect: 'none',
       }}>
@@ -199,11 +253,11 @@ export const StockChart: React.FC<StockChartProps> = ({
           return (
             <button
               key={tf}
-              onClick={() => onSelectTimeframe(tf)}
+              onClick={() => handleTimeframeClick(tf)}
               style={{
                 flex: '1 1 0%',
                 minWidth: 0,
-                padding: '8px 0',
+                padding: '8px 4px',
                 fontSize: '13px',
                 fontWeight: 700,
                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
@@ -216,6 +270,10 @@ export const StockChart: React.FC<StockChartProps> = ({
                 transition: 'all 0.15s ease',
                 textAlign: 'center',
                 whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
@@ -230,11 +288,60 @@ export const StockChart: React.FC<StockChartProps> = ({
                 }
               }}
             >
-              {tf}
+              {tf === 'CUSTOM' ? (
+                <>
+                  <Calendar size={13} />
+                  <span>CUSTOM</span>
+                </>
+              ) : (
+                tf
+              )}
             </button>
           );
         })}
       </div>
+
+      {/* Custom Date Range Active Info Bar */}
+      {selectedTimeframe === 'CUSTOM' && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+          padding: '8px 14px',
+          borderRadius: 8,
+          backgroundColor: 'rgba(10, 132, 255, 0.12)',
+          border: '1px solid rgba(10, 132, 255, 0.25)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#0A84FF' }}>
+            <Calendar size={15} />
+            <span>Range: {formatCustomBadgeLabel()}</span>
+          </div>
+          <button
+            onClick={() => setIsDatePickerOpen(true)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#0A84FF',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            Change Dates
+          </button>
+        </div>
+      )}
+
+      {/* Date Range Picker Modal */}
+      <DateRangePickerModal
+        isOpen={isDatePickerOpen}
+        onClose={() => setIsDatePickerOpen(false)}
+        currentRange={customRange}
+        onApplyRange={handleApplyRange}
+      />
+
 
       {/* SVG Interactive Dynamic Full-Width Chart */}
       <div style={{ position: 'relative', width: '100%', height: 360 }}>
