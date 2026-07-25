@@ -60,9 +60,11 @@ stonks-app/
    - Manages global state: `watchlistSymbols`, `selectedSymbol`, `selectedTimeframe`, `badgeDisplayMode`, `isSidebarOpen`, `isRefreshing`, and `isLoadingChart`.
    - Automatically synchronizes watchlist settings with `localStorage` and native `electronAPI.saveSettings()`.
    - Registers global keyboard shortcuts (e.g., `Cmd + K` or `Ctrl + K` to trigger search).
+   - Runs a 30-second background polling interval to auto-refresh live quotes and chart data.
 
 4. **Data Service (`src/services/yahooFinanceApi.ts`)**:
    - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines.
+   - Maintains an in-memory 30-second TTL cache for stock data requests to enable instant ticker switching without loading flicker.
    - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`).
 
 ---

@@ -86,12 +86,13 @@ export const App: React.FC = () => {
   // Load Watchlist Quotes for the active timeframe
   const loadWatchlistData = useCallback(async (
     timeframe: Timeframe = selectedTimeframe,
-    customRange: CustomDateRange = customDateRange
+    customRange: CustomDateRange = customDateRange,
+    forceRefresh: boolean = false
   ) => {
     setIsRefreshing(true);
     try {
       const results = await Promise.all(
-        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe, customRange).catch(() => null))
+        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe, customRange, forceRefresh).catch(() => null))
       );
       const quotes: StockQuote[] = results.map((res, idx) => {
         if (res) return res.quote;
@@ -127,11 +128,12 @@ export const App: React.FC = () => {
   const loadDetailData = useCallback(async (
     symbol: string,
     timeframe: Timeframe,
-    customRange: CustomDateRange = customDateRange
+    customRange: CustomDateRange = customDateRange,
+    forceRefresh: boolean = false
   ) => {
     setIsLoadingChart(true);
     try {
-      const res = await fetchStockData(symbol, timeframe, customRange);
+      const res = await fetchStockData(symbol, timeframe, customRange, forceRefresh);
       if (res) {
         setSelectedQuote(res.quote);
         setChartData(res.chart);
@@ -166,6 +168,18 @@ export const App: React.FC = () => {
       loadDetailData(selectedSymbol, selectedTimeframe, customDateRange);
     }
   }, [selectedSymbol, selectedTimeframe, loadDetailData, customDateRange]);
+
+  // Auto-refresh watchlist and detailed quote data every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadWatchlistData(selectedTimeframe, customDateRange, true);
+      if (selectedSymbol) {
+        loadDetailData(selectedSymbol, selectedTimeframe, customDateRange, true);
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [selectedTimeframe, selectedSymbol, customDateRange, loadWatchlistData, loadDetailData]);
 
 
   // Add ticker to watchlist
@@ -218,8 +232,8 @@ export const App: React.FC = () => {
         isSidebarOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onRefresh={() => {
-          loadWatchlistData(selectedTimeframe);
-          if (selectedSymbol) loadDetailData(selectedSymbol, selectedTimeframe);
+          loadWatchlistData(selectedTimeframe, customDateRange, true);
+          if (selectedSymbol) loadDetailData(selectedSymbol, selectedTimeframe, customDateRange, true);
         }}
         isRefreshing={isRefreshing}
       />

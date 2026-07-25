@@ -161,12 +161,35 @@ async function fetchQuoteDetails(symbol: string, currentPrice: number, isCustom?
   return { marketCap, peRatio };
 }
 
+interface StockCacheEntry {
+  data: { quote: StockQuote; chart: ChartDataPoint[] };
+  timestamp: number;
+}
+
+const stockDataCache = new Map<string, StockCacheEntry>();
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds
+
+export function clearStockCache(): void {
+  stockDataCache.clear();
+}
+
 export async function fetchStockData(
   symbol: string,
   timeframe: Timeframe = '1D',
-  customRange?: CustomDateRange
+  customRange?: CustomDateRange,
+  forceRefresh: boolean = false
 ): Promise<{ quote: StockQuote; chart: ChartDataPoint[] } | null> {
-  const targetSymbol = encodeURIComponent(symbol.toUpperCase());
+  const cleanSymbol = symbol.toUpperCase();
+  const cacheKey = `${cleanSymbol}_${timeframe}_${customRange?.startDate || ''}_${customRange?.endDate || ''}`;
+
+  if (!forceRefresh) {
+    const cached = stockDataCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
+  const targetSymbol = encodeURIComponent(cleanSymbol);
   let url = '';
   const isCustom = timeframe === 'CUSTOM' && !!customRange?.startDate && !!customRange?.endDate;
   let customDiffDays = 0;
@@ -270,13 +293,15 @@ export async function fetchStockData(
       marketState: meta.marketState || 'CLOSED',
     };
 
-    return { quote, chart: chartPoints };
+    const stockData = { quote, chart: chartPoints };
+    stockDataCache.set(cacheKey, { data: stockData, timestamp: Date.now() });
+
+    return stockData;
   }
 
   // Return null when unable to fetch live data (offline or API error)
   return null;
 }
-
 
 export async function searchTickers(query: string): Promise<SearchResult[]> {
   if (!query || query.trim().length === 0) return [];
