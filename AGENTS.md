@@ -172,3 +172,13 @@ Whenever you modify the codebase architecture, add new dependencies, implement n
 2. **`README.md`**: Focus exclusively on application overview, features, usage, prerequisites, running/building scripts, license, and disclaimers (keep file structure details in `AGENTS.md`).
 3. **New Scripts / Dependencies**: Update the package scripts table and tech stack lists in both files.
 4. **UI or Aesthetic Changes**: Update screenshots (`public/screenshot.png`) if the visual layout changes significantly.
+
+---
+
+## 🛑 Strict Git Workflow Rule for AI Agents
+
+> [!CRITICAL]
+> **NO AUTOMATED COMMITS OR PUSHES**
+> AI Agents working in this repository must **NEVER** execute `git commit` or `git push`.
+> All file edits and updates must be left staged or uncommitted in the local working tree so the developer can review, write custom commit messages, and push manually.
+

@@ -9,10 +9,17 @@
 </p>
 
 <p align="center">
+  <a href="https://orangechuice.github.io/stonks-app/" target="_blank">
+    <img src="https://img.shields.io/badge/🌐_TRY_LIVE_WEB_APP-CLICK_HERE_TO_LAUNCH-0A84FF?style=for-the-badge&logo=github&logoColor=white&labelColor=000000" height="40" alt="Try Live Web Application" />
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Electron-29.1.5-47A248?style=for-the-badge&logo=electron&logoColor=white" alt="Electron" />
   <img src="https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5.2.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-5.1.6-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <a href="https://ko-fi.com/orangechuice" target="_blank"><img src="https://img.shields.io/badge/Support%20me%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support me on Ko-fi" /></a>
 </p>
 
 ---
@@ -101,6 +108,14 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 | **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production static site in `dist/` for GitHub Pages hosting. |
 | **Deploy to GitHub Pages** | `npm run deploy` | Builds production web bundle and deploys `dist/` to GitHub Pages (`gh-pages` branch). |
 | **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages the app into standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
+
+---
+
+## ☕ Support
+
+If you enjoy using **Stonks**, consider supporting development on Ko-fi!
+
+[![Support me on Ko-fi](https://img.shields.io/badge/Support%20me%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/orangechuice)
 
 ---
 
