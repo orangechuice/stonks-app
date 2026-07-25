@@ -148,37 +148,38 @@ async function fetchQuoteDetails(symbol: string, currentPrice: number, isCustom?
     return { marketCap, peRatio };
   }
 
-  // 1. Try Nasdaq API (live summary)
-  try {
-    const summaryUrl = `https://api.nasdaq.com/api/quote/${encodeURIComponent(symUpper)}/summary?assetclass=stocks`;
-    const res = await fetchYahooApi(summaryUrl);
-    const capStr = res?.data?.summaryData?.MarketCap?.value;
-    if (capStr && capStr !== 'N/A') {
-      const parsedCap = parseFloat(capStr.replace(/,/g, ''));
-      if (!isNaN(parsedCap) && parsedCap > 0) {
-        marketCap = parsedCap;
+  // 1. In Electron Desktop App, query Nasdaq APIs for live Market Cap and trailing P/E
+  if (window.electronAPI?.fetchStockApi) {
+    try {
+      const summaryUrl = `https://api.nasdaq.com/api/quote/${encodeURIComponent(symUpper)}/summary?assetclass=stocks`;
+      const res = await fetchYahooApi(summaryUrl);
+      const capStr = res?.data?.summaryData?.MarketCap?.value;
+      if (capStr && capStr !== 'N/A') {
+        const parsedCap = parseFloat(capStr.replace(/,/g, ''));
+        if (!isNaN(parsedCap) && parsedCap > 0) {
+          marketCap = parsedCap;
+        }
       }
+    } catch (e) {
+      // Ignore error
     }
-  } catch (e) {
-    // Ignore error
+
+    try {
+      const epsUrl = `https://api.nasdaq.com/api/quote/${encodeURIComponent(symUpper)}/eps?assetclass=stocks`;
+      const epsJson = await fetchYahooApi(epsUrl);
+      const list = epsJson?.data?.earningsPerShare;
+      if (Array.isArray(list) && list.length >= 4) {
+        const trailingEps = list.slice(0, 4).reduce((acc: number, curr: any) => acc + (typeof curr.earnings === 'number' ? curr.earnings : 0), 0);
+        if (trailingEps > 0 && currentPrice > 0) {
+          peRatio = currentPrice / trailingEps;
+        }
+      }
+    } catch (e) {
+      // Ignore error
+    }
   }
 
-  // 2. Try Nasdaq EPS for trailing P/E
-  try {
-    const epsUrl = `https://api.nasdaq.com/api/quote/${encodeURIComponent(symUpper)}/eps?assetclass=stocks`;
-    const epsJson = await fetchYahooApi(epsUrl);
-    const list = epsJson?.data?.earningsPerShare;
-    if (Array.isArray(list) && list.length >= 4) {
-      const trailingEps = list.slice(0, 4).reduce((acc: number, curr: any) => acc + (typeof curr.earnings === 'number' ? curr.earnings : 0), 0);
-      if (trailingEps > 0 && currentPrice > 0) {
-        peRatio = currentPrice / trailingEps;
-      }
-    }
-  } catch (e) {
-    // Ignore error
-  }
-
-  // 3. Fallback database calculation (dynamic based on live current price)
+  // 2. Fallback database calculation (dynamic based on live current price)
   if (!marketCap && f?.shares && currentPrice > 0) {
     marketCap = currentPrice * f.shares;
   }
@@ -205,10 +206,11 @@ export async function fetchStockData(
   symbol: string,
   timeframe: Timeframe = '1D',
   customRange?: CustomDateRange,
-  forceRefresh: boolean = false
+  forceRefresh: boolean = false,
+  includeDetails: boolean = true
 ): Promise<{ quote: StockQuote; chart: ChartDataPoint[] } | null> {
   const cleanSymbol = symbol.toUpperCase();
-  const cacheKey = `${cleanSymbol}_${timeframe}_${customRange?.startDate || ''}_${customRange?.endDate || ''}`;
+  const cacheKey = `${cleanSymbol}_${timeframe}_${customRange?.startDate || ''}_${customRange?.endDate || ''}_${includeDetails ? 'det' : 'basic'}`;
 
   if (!forceRefresh) {
     const cached = stockDataCache.get(cacheKey);
@@ -297,7 +299,9 @@ export async function fetchStockData(
     const change = currentPrice - previousClose;
     const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
 
-    const quoteDetails = await fetchQuoteDetails(symbol, currentPrice, isCustom);
+    const quoteDetails = includeDetails
+      ? await fetchQuoteDetails(symbol, currentPrice, isCustom)
+      : { marketCap: undefined, peRatio: undefined };
 
     const quote: StockQuote = {
       symbol: meta.symbol || symbol.toUpperCase(),

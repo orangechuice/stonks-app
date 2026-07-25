@@ -70,6 +70,7 @@ stonks-app/
    - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines via Electron main IPC (desktop) or CORS proxies (`corsproxy.io`, `api.allorigins.win`) for web browser deployment.
    - Maintains an in-memory 30-second TTL cache for stock data requests to enable instant ticker switching without loading flicker.
    - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`, `CUSTOM`).
+   - Defers detailed stat queries (Market Cap & P/E from Nasdaq endpoints) using the `includeDetails` parameter so background watchlist loads only fetch single chart requests, drastically reducing network requests and bypassing web CORS proxy rate limits.
 
 ---
 

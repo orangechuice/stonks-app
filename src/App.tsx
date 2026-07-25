@@ -101,7 +101,7 @@ export const App: React.FC = () => {
     setIsRefreshing(true);
     try {
       const results = await Promise.all(
-        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe, customRange, forceRefresh).catch(() => null))
+        watchlistSymbols.map((sym) => fetchStockData(sym, timeframe, customRange, forceRefresh, false).catch(() => null))
       );
       const quotes: StockQuote[] = results.map((res, idx) => {
         if (res) return res.quote;
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
   ) => {
     setIsLoadingChart(true);
     try {
-      const res = await fetchStockData(symbol, timeframe, customRange, forceRefresh);
+      const res = await fetchStockData(symbol, timeframe, customRange, forceRefresh, true);
       if (res) {
         setSelectedQuote(res.quote);
         setChartData(res.chart);

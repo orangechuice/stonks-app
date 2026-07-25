@@ -32,6 +32,12 @@
   <img src="public/screenshot.png" width="100%" alt="Stonks Application Screenshot" />
 </p>
 
+> [!IMPORTANT]
+> **💻 Native macOS Application is Recommended**
+> While a live web version is hosted on [GitHub Pages](https://orangechuice.github.io/stonks-app/), web browsers block direct cross-origin requests to financial data APIs, requiring web traffic to route through public CORS proxies (`corsproxy.io`, `allorigins.win`). Heavy web traffic or frequent timeframe switching can occasionally hit public CORS proxy rate limits (`HTTP 429`).
+> 
+> **For the fastest, unthrottled experience with 100% data reliability, run the native macOS application (`npm run electron:dev` or packaged `.dmg`)**, which executes requests natively via Electron's background IPC process without CORS proxy throttling!
+
 ---
 
 ## ✨ Features
