@@ -104,43 +104,6 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 
 ---
 
-## 📁 Repository Structure
-
-```
-stonks-app/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml       # GitHub Actions automated deployment workflow for GitHub Pages
-├── electron/
-│   ├── main.js              # Electron main process entry point
-│   └── preload.js           # Secure contextBridge IPC preload script
-├── public/
-│   ├── icon.png             # Application desktop & web icon
-│   └── screenshot.png       # Application UI screenshot preview
-├── src/
-│   ├── components/
-│   │   ├── DateRangePickerModal.tsx # Custom date range selector modal
-│   │   ├── SearchModal.tsx  # Spotlight-style search modal
-│   │   ├── Sidebar.tsx      # Watchlist sidebar with drag-and-drop
-│   │   ├── StockChart.tsx   # SVG stock chart renderer
-│   │   ├── StockDetail.tsx  # Detailed metrics & main chart view
-│   │   └── Titlebar.tsx     # Custom native window titlebar
-│   ├── services/
-│   │   └── yahooFinanceApi.ts # Stock market data API service
-│   ├── types/
-│   │   └── stock.ts         # TypeScript definitions & interfaces
-│   ├── App.tsx              # Core app container & state management
-│   ├── index.css            # Custom CSS & design system utilities
-│   └── main.tsx             # React DOM root entry point
-├── index.html
-├── LICENSE                  # MIT open-source license
-├── package.json             # App scripts and Electron build config
-├── tsconfig.json            # TypeScript compiler configuration
-└── vite.config.ts           # Vite build tool configuration
-```
-
----
-
 ## 📄 License
 
 This project is open-source and available under the [MIT License](LICENSE).

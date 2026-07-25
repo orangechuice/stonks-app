@@ -33,6 +33,7 @@ stonks-app/
 │   │   ├── StockDetail.tsx     # Main asset overview, timeframe selector, key stats
 │   │   ├── StockChart.tsx      # SVG chart renderer with crosshairs & dynamic color gradients
 │   │   ├── SearchModal.tsx     # Spotlight-style search modal (Cmd+K)
+│   │   ├── DateRangePickerModal.tsx # Custom date range selector modal
 │   │   └── StonksIcon.tsx      # App icon component
 │   ├── services/
 │   │   └── yahooFinanceApi.ts  # Yahoo Finance API fetcher, sparklines, chart data transform
@@ -68,7 +69,7 @@ stonks-app/
 4. **Data Service (`src/services/yahooFinanceApi.ts`)**:
    - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines via Electron main IPC (desktop) or CORS proxies (`corsproxy.io`, `api.allorigins.win`) for web browser deployment.
    - Maintains an in-memory 30-second TTL cache for stock data requests to enable instant ticker switching without loading flicker.
-   - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`).
+   - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`, `CUSTOM`).
 
 ---
 
@@ -165,9 +166,9 @@ npm run electron:build
 ## 📝 Guidelines for Updating Documentation (`AGENTS.md` & `README.md`)
 
 **IMPORTANT FOR AI AGENTS & DEVELOPERS:**
-Whenever you modify the codebase architecture, add new dependencies, implement new IPC channels, or add user-facing features, you **MUST** update both `AGENTS.md` and `README.md`:
+Whenever you modify the codebase architecture, add new dependencies, implement new IPC channels, or add user-facing features, update documentation as follows:
 
-1. **New Components or Files**: Add them to the Repository Structure section in both `AGENTS.md` and `README.md`.
-2. **New IPC Methods**: Document the IPC handlers in the Architecture & Codebase Map section of `AGENTS.md`.
+1. **`AGENTS.md`**: Update architecture, codebase map, IPC methods, and developer workflows.
+2. **`README.md`**: Focus exclusively on application overview, features, usage, prerequisites, running/building scripts, license, and disclaimers (keep file structure details in `AGENTS.md`).
 3. **New Scripts / Dependencies**: Update the package scripts table and tech stack lists in both files.
 4. **UI or Aesthetic Changes**: Update screenshots (`public/screenshot.png`) if the visual layout changes significantly.
