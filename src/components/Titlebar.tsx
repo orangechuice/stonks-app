@@ -88,7 +88,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           Stonks
         </span>
         <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>
-          macOS
+          {isElectron ? 'macOS' : 'Web'}
         </span>
       </div>
 

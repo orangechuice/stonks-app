@@ -19,6 +19,9 @@ This document provides a comprehensive overview of the **Stonks** codebase, its 
 
 ```
 stonks-app/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml          # GitHub Actions deployment workflow for GitHub Pages
 ├── electron/
 │   ├── main.js                 # Electron main process (Window, IPC, Settings persistence)
 │   └── preload.js              # Secure IPC bridge exposing window.electronAPI
@@ -58,12 +61,12 @@ stonks-app/
 
 3. **React State Coordinator (`src/App.tsx`)**:
    - Manages global state: `watchlistSymbols`, `selectedSymbol`, `selectedTimeframe`, `badgeDisplayMode`, `isSidebarOpen`, `isRefreshing`, and `isLoadingChart`.
-   - Automatically synchronizes watchlist settings with `localStorage` and native `electronAPI.saveSettings()`.
+   - Automatically synchronizes watchlist, badge mode, and active symbol with browser `localStorage` (`mac_stock_app_watchlist`, `mac_stock_app_badge_mode`, `mac_stock_app_selected_symbol`) and native `electronAPI.saveSettings()`.
    - Registers global keyboard shortcuts (e.g., `Cmd + K` or `Ctrl + K` to trigger search).
    - Runs a 30-second background polling interval to auto-refresh live quotes and chart data.
 
 4. **Data Service (`src/services/yahooFinanceApi.ts`)**:
-   - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines.
+   - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines via Electron main IPC (desktop) or CORS proxies (`corsproxy.io`, `api.allorigins.win`) for web browser deployment.
    - Maintains an in-memory 30-second TTL cache for stock data requests to enable instant ticker switching without loading flicker.
    - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`).
 
@@ -93,10 +96,17 @@ npm run clean
 ```
 *Removes previous build directories (`dist/` and `dist_electron/`). Automatically called before builds.*
 
-### Type Check & Build Web Distribution
+### Type Check & Build Web / GitHub Pages Distribution
 ```bash
 npm run build
 ```
+*Builds static web distribution assets into `dist/` with relative base path (`base: './'`).*
+
+### Deploy to GitHub Pages
+```bash
+npm run deploy
+```
+*Builds production web bundle and deploys `dist/` folder to GitHub Pages (`gh-pages` branch). Automated CI deployment also runs via `.github/workflows/deploy.yml` on push to `main`.*
 
 ### Package Standalone Desktop Application (macOS)
 ```bash

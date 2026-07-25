@@ -98,7 +98,8 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 | **Electron Dev Mode** | `npm run electron:dev` | Launches Vite dev server and runs the Electron app simultaneously with hot-reloading. |
 | **Web Dev Mode** | `npm run dev` | Runs the web app independently in your browser at `http://localhost:3000`. |
 | **Clean Artifacts** | `npm run clean` | Cleans old build output folders (`dist/` and `dist_electron/`). |
-| **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production distribution in `dist/`. |
+| **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production static site in `dist/` for GitHub Pages hosting. |
+| **Deploy to GitHub Pages** | `npm run deploy` | Builds production web bundle and deploys `dist/` to GitHub Pages (`gh-pages` branch). |
 | **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages the app into standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
 
 ---
@@ -107,6 +108,9 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 
 ```
 stonks-app/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # GitHub Actions automated deployment workflow for GitHub Pages
 ├── electron/
 │   ├── main.js              # Electron main process entry point
 │   └── preload.js           # Secure contextBridge IPC preload script

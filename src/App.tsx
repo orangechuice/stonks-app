@@ -39,7 +39,13 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  const [selectedSymbol, setSelectedSymbol] = useState<string>(watchlistSymbols[0] || '^GSPC');
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('mac_stock_app_selected_symbol');
+      if (saved && saved.trim()) return saved.trim();
+    } catch (e) {}
+    return watchlistSymbols[0] || '^GSPC';
+  });
   const [watchlistQuotes, setWatchlistQuotes] = useState<StockQuote[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<StockQuote | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -66,14 +72,17 @@ export const App: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
-  // Save Watchlist & Badge Display Mode to Native App Settings & LocalStorage
+  // Save Watchlist, Badge Display Mode, and Selected Symbol to Native App Settings & LocalStorage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(watchlistSymbols));
     localStorage.setItem('mac_stock_app_badge_mode', badgeDisplayMode);
+    if (selectedSymbol) {
+      localStorage.setItem('mac_stock_app_selected_symbol', selectedSymbol);
+    }
     if (window.electronAPI?.saveSettings) {
       window.electronAPI.saveSettings({ watchlist: watchlistSymbols, badgeDisplayMode });
     }
-  }, [watchlistSymbols, badgeDisplayMode]);
+  }, [watchlistSymbols, badgeDisplayMode, selectedSymbol]);
 
   const handleToggleBadgeDisplayMode = () => {
     setBadgeDisplayMode((prev) => {

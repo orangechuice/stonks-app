@@ -40,6 +40,21 @@ function resolveMarketCap(symbol: string, metaCap?: number): number | undefined 
   return undefined;
 }
 
+function downsamplePrices(prices: number[], targetPoints: number = 30): number[] {
+  if (!prices || prices.length === 0) return [];
+  if (prices.length <= targetPoints) return [...prices];
+
+  const result: number[] = [];
+  const step = (prices.length - 1) / (targetPoints - 1);
+  for (let i = 0; i < targetPoints; i++) {
+    const index = Math.round(i * step);
+    result.push(prices[index]);
+  }
+  result[0] = prices[0];
+  result[result.length - 1] = prices[prices.length - 1];
+  return result;
+}
+
 const TIMEFRAME_CONFIG: Record<Timeframe, { range: string; interval: string }> = {
   '1D': { range: '1d', interval: '5m' },
   '1W': { range: '5d', interval: '15m' },
@@ -60,19 +75,32 @@ async function fetchYahooApi(url: string) {
     if (data) return data;
   }
 
-  // 2. Browser web preview mode fallback
+  // 2. Browser web mode fallback (direct fetch)
   try {
     const res = await fetch(url);
     if (res.ok) return await res.json();
   } catch (e) {
-    try {
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      const proxyRes = await fetch(proxyUrl);
-      if (proxyRes.ok) return await proxyRes.json();
-    } catch (proxyError) {
-      console.warn('Proxy fetch failed for URL:', url, proxyError);
-    }
+    // Direct fetch failed (CORS error in browser)
   }
+
+  // 3. Try primary CORS proxy (corsproxy.io)
+  try {
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const proxyRes = await fetch(proxyUrl);
+    if (proxyRes.ok) return await proxyRes.json();
+  } catch (proxyError) {
+    // Primary proxy failed
+  }
+
+  // 4. Try secondary CORS proxy (api.allorigins.win)
+  try {
+    const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const proxyRes2 = await fetch(proxyUrl2);
+    if (proxyRes2.ok) return await proxyRes2.json();
+  } catch (proxyError2) {
+    console.warn('All CORS proxies failed for URL:', url, proxyError2);
+  }
+
   return null;
 }
 
@@ -289,7 +317,7 @@ export async function fetchStockData(
       fiftyTwoWeekLow: meta.fiftyTwoWeekLow || currentPrice * 0.85,
       marketCap: resolveMarketCap(symbol, quoteDetails.marketCap ?? meta.marketCap),
       peRatio: quoteDetails.peRatio ?? meta.trailingPE ?? meta.peRatio,
-      sparkline: validPrices.slice(-10),
+      sparkline: downsamplePrices(validPrices, 30),
       marketState: meta.marketState || 'CLOSED',
     };
 
