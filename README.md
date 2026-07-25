@@ -59,7 +59,7 @@ Stonks combines a modern React web frontend with an Electron desktop wrapper for
       settings.json                 Yahoo Finance API
 ```
 
-1. **Main Process (`electron/main.js`)**: Manages the lifecycle of the desktop application, initializes the `BrowserWindow` with native macOS `hiddenInset` titlebar styling, and registers IPC main handlers for settings persistence (`get-settings`, `save-settings`) and window controls.
+1. **Main Process (`electron/main.js`)**: Manages the lifecycle of the desktop application, initializes the `BrowserWindow` with native macOS `hiddenInset` titlebar styling, and registers IPC main handlers for settings persistence (`get-settings`, `save-settings`), window controls, and CORS-bypassing stock API fetching (`fetch-stock-api`).
 2. **Preload Script (`electron/preload.js`)**: Safely exposes IPC communication methods to the frontend application using Electron's `contextBridge`, preserving `contextIsolation`.
 3. **Frontend Application (`src/`)**:
    - **`App.tsx`**: State coordinator managing watchlist state, active symbol, selected timeframe, and background data synchronization.
