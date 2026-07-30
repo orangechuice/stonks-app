@@ -20,6 +20,7 @@
     "electron:build": "npm run clean && tsc && vite build && electron-builder --mac"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -39,6 +40,11 @@
   "build": {
     "appId": "com.orangechuice.stonksapp",
     "productName": "Stonks",
+    "publish": {
+      "provider": "github",
+      "owner": "orangechuice",
+      "repo": "stonks-app"
+    },
     "directories": {
       "output": "dist_electron"
     },

@@ -21,9 +21,10 @@ This document provides a comprehensive overview of the **Stonks** codebase, its 
 stonks-app/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml          # GitHub Actions deployment workflow for GitHub Pages
+│       ├── deploy.yml          # GitHub Actions deployment workflow for GitHub Pages
+│       └── release.yml         # GitHub Actions workflow for packaging macOS .dmg/.zip & publishing releases
 ├── electron/
-│   ├── main.js                 # Electron main process (Window, IPC, Settings persistence)
+│   ├── main.js                 # Electron main process (Window, IPC, autoUpdater, Settings persistence)
 │   └── preload.js              # Secure IPC bridge exposing window.electronAPI
 ├── public/                     # Static assets (App icons, screenshots)
 ├── src/
