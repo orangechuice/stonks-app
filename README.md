@@ -33,7 +33,7 @@
 </p>
 
 > [!IMPORTANT]
-> **💻 Native macOS Application is Recommended**
+> **💻 Native macOS Application is Recommended!!**
 > While a live web version is hosted on [GitHub Pages](https://orangechuice.github.io/stonks-app/), web browsers block direct cross-origin requests to financial data APIs, requiring web traffic to route through public CORS proxies (`corsproxy.io`, `allorigins.win`). Heavy web traffic or frequent timeframe switching can occasionally hit public CORS proxy rate limits (`HTTP 429`).
 > 
 > **For the fastest, unthrottled experience with 100% data reliability, run the native macOS application (`npm run electron:dev` or packaged `.dmg`)**, which executes requests natively via Electron's background IPC process without CORS proxy throttling!
@@ -86,26 +86,74 @@ Stonks combines a modern React web frontend with an Electron desktop wrapper for
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 📦 Pre-built macOS Releases (GitHub Releases)
 
-Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your system.
+If you download the pre-compiled `.dmg` or `.app` from [GitHub Releases](https://github.com/orangechuice/stonks-app/releases):
 
-### Installation
+> [!NOTE]
+> **macOS Security / "App is Damaged" Warning**
+> Because this project does not currently use an official Apple Developer account, downloaded release binaries are unnotarized by Apple. macOS Gatekeeper automatically assigns downloaded files a `com.apple.quarantine` attribute, which causes macOS to report that the app is *"damaged and can't be opened"*.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/orangechuice/stonks-app.git
-   cd stonks-app
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+To launch the downloaded release:
+- **Option 1 — Clear quarantine on the downloaded `.dmg` (Before installing):**
+  ```bash
+  xattr -d com.apple.quarantine ~/Downloads/Stonks*.dmg
+  ```
+- **Option 2 — Clear quarantine on `Stonks.app` (After installing to `/Applications`):**
+  ```bash
+  xattr -d com.apple.quarantine /Applications/Stonks.app
+  ```
+- **Option 3 — Open via Finder (No Terminal required):**
+  Control-click (Right-click) `Stonks.app` in Finder $\rightarrow$ select **Open** $\rightarrow$ click **Open** in the prompt.
 
 ---
 
-## 💻 Usage & Scripts
+### 💻 Local Development & Building
+
+#### 1. Prerequisites
+Ensure you have **Node.js** (v18.0 or higher) and **npm** installed:
+```bash
+node -v
+npm -v
+```
+
+#### 2. Download & Installation
+Clone the repository and install project dependencies:
+```bash
+git clone https://github.com/orangechuice/stonks-app.git
+cd stonks-app
+npm install
+```
+
+#### 3. Running Locally (Development Mode)
+- **Desktop Application (Recommended)**: Runs Vite dev server and launches the native Electron desktop app with hot-reloading:
+  ```bash
+  npm run electron:dev
+  ```
+- **Web App Only**: Runs the frontend in your browser at `http://localhost:3000`:
+  ```bash
+  npm run dev
+  ```
+
+#### 4. Packaging the Desktop App (.dmg / .zip)
+To compile the TypeScript project and package your own native macOS `.dmg` installer and `.zip` archive locally:
+```bash
+npm run electron:build
+```
+The packaged installers will be placed in the `dist_electron/` directory (e.g. `dist_electron/Stonks-1.0.2-arm64.dmg`).
+
+> [!TIP]
+> **Why Local Builds Work Instantly**
+> Binaries built locally on your machine are NOT tagged with macOS `com.apple.quarantine`, so your locally generated `.dmg` in `dist_electron/` will open and run immediately without Gatekeeper security warnings.
+
+#### 5. Building & Deploying Web Version
+- **Build Web Bundle**: `npm run build` (outputs to `dist/`)
+- **Preview Web Bundle**: `npm run preview`
+- **Deploy to GitHub Pages**: `npm run deploy`
+
+---
+
+## 📜 All Package Scripts Reference
 
 | Script | Command | Description |
 | :--- | :--- | :--- |
@@ -114,7 +162,7 @@ Ensure you have **Node.js** (v18.0 or higher) and **npm** installed on your syst
 | **Clean Artifacts** | `npm run clean` | Cleans old build output folders (`dist/` and `dist_electron/`). |
 | **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production static site in `dist/` for GitHub Pages hosting. |
 | **Deploy to GitHub Pages** | `npm run deploy` | Builds production web bundle and deploys `dist/` to GitHub Pages (`gh-pages` branch). |
-| **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages the app into standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
+| **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
 
 ---
 
