@@ -2,7 +2,8 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { autoUpdater } from 'electron-updater';
+import pkg from 'electron-updater';
+const autoUpdater = pkg.autoUpdater || (pkg.default && pkg.default.autoUpdater) || pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
