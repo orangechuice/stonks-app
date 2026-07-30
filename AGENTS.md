@@ -106,6 +106,12 @@ npm run build
 ```
 *Builds static web distribution assets into `dist/` with relative base path (`base: './'`).*
 
+### Run Unit Tests
+```bash
+npm run test
+```
+*Runs unit test suite with Vitest and `@testing-library/react` to verify market status and UI component attributes.*
+
 ### Deploy to GitHub Pages
 ```bash
 npm run deploy

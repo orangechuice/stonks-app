@@ -40,6 +40,53 @@ function resolveMarketCap(symbol: string, metaCap?: number): number | undefined 
   return undefined;
 }
 
+export function deriveMarketState(meta: any, nowSec: number = Math.floor(Date.now() / 1000)): 'REGULAR' | 'CLOSED' | 'PRE' | 'POST' | 'POSTPOST' {
+  if (meta && typeof meta.marketState === 'string' && meta.marketState.length > 0) {
+    return meta.marketState.toUpperCase() as any;
+  }
+
+  const period = meta?.currentTradingPeriod;
+  if (period && (period.regular || period.pre || period.post)) {
+    if (period.regular && nowSec >= period.regular.start && nowSec < period.regular.end) {
+      return 'REGULAR';
+    }
+    if (period.pre && nowSec >= period.pre.start && nowSec < period.pre.end) {
+      return 'PRE';
+    }
+    if (period.post && nowSec >= period.post.start && nowSec < period.post.end) {
+      return 'POST';
+    }
+    return 'CLOSED';
+  }
+
+  // Fallback: Check US New York market trading hours (9:30 AM - 4:00 PM ET Mon-Fri)
+  try {
+    const now = new Date(nowSec * 1000);
+    const nyTimeStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' });
+    const nyDate = new Date(nyTimeStr);
+    const day = nyDate.getDay(); // 0 = Sun, 6 = Sat
+    const hours = nyDate.getHours();
+    const minutes = nyDate.getMinutes();
+    const totalMins = hours * 60 + minutes;
+
+    if (day >= 1 && day <= 5) {
+      if (totalMins >= 570 && totalMins < 960) { // 9:30 AM - 4:00 PM ET
+        return 'REGULAR';
+      }
+      if (totalMins >= 240 && totalMins < 570) { // 4:00 AM - 9:30 AM ET
+        return 'PRE';
+      }
+      if (totalMins >= 960 && totalMins < 1200) { // 4:00 PM - 8:00 PM ET
+        return 'POST';
+      }
+    }
+  } catch (e) {
+    // Ignore timezone parsing errors if any
+  }
+
+  return 'CLOSED';
+}
+
 function downsamplePrices(prices: number[], targetPoints: number = 30): number[] {
   if (!prices || prices.length === 0) return [];
   if (prices.length <= targetPoints) return [...prices];
@@ -388,7 +435,7 @@ export async function fetchStockData(
       marketCap: resolveMarketCap(symbol, quoteDetails.marketCap ?? meta.marketCap),
       peRatio: quoteDetails.peRatio ?? meta.trailingPE ?? meta.peRatio,
       sparkline: downsamplePrices(pricesForCalc, 30),
-      marketState: meta.marketState || 'CLOSED',
+      marketState: deriveMarketState(meta),
       postMarketPrice,
       postMarketChange,
       postMarketChangePercent,

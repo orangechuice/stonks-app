@@ -80,7 +80,9 @@ export const StockDetail: React.FC<StockDetailProps> = ({
             <span>·</span>
             <span>{quote?.currency || 'USD'}</span>
             <span>·</span>
-            <span style={{ textTransform: 'capitalize' }}>{quote?.marketState || 'Offline'}</span>
+            <span style={{ textTransform: 'capitalize' }}>
+              {quote?.marketState ? (quote.marketState === 'REGULAR' ? 'Open' : quote.marketState.toLowerCase()) : 'Offline'}
+            </span>
           </div>
         </div>
 
@@ -110,7 +112,19 @@ export const StockDetail: React.FC<StockDetailProps> = ({
                 </div>
               )}
             </div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.4)', marginTop: 3 }}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: quote?.marketState === 'REGULAR' ? '#30D158' : 'rgba(255, 255, 255, 0.4)',
+              marginTop: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              justifyContent: 'flex-end',
+            }}>
+              {quote?.marketState === 'REGULAR' && (
+                <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#30D158', display: 'inline-block' }} />
+              )}
               {quote?.marketState === 'REGULAR' ? 'Live' : 'At Close'}
             </div>
           </div>

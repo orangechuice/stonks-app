@@ -252,7 +252,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
             letterSpacing: '0.02em',
           }}>{selectedTimeframe}</span>
         </div>
-        <span>Market Closed</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          {(() => {
+            const activeStock = watchlist.find(s => s.symbol.toUpperCase() === selectedSymbol.toUpperCase()) || watchlist[0];
+            const state = activeStock?.marketState;
+            const isLive = state === 'REGULAR';
+            const label = isLive
+              ? 'Market Open'
+              : state === 'PRE'
+              ? 'Pre-Market'
+              : state === 'POST'
+              ? 'After Hours'
+              : 'Market Closed';
+
+            return (
+              <>
+                {isLive && (
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#30D158', display: 'inline-block' }} />
+                )}
+                <span style={{ color: isLive ? '#30D158' : 'rgba(255,255,255,0.4)' }}>
+                  {label}
+                </span>
+              </>
+            );
+          })()}
+        </div>
       </div>
 
       {/* Watchlist Item Cards */}

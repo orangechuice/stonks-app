@@ -160,6 +160,7 @@ The packaged installers will be placed in the `dist_electron/` directory (e.g. `
 | **Electron Dev Mode** | `npm run electron:dev` | Launches Vite dev server and runs the Electron app simultaneously with hot-reloading. |
 | **Web Dev Mode** | `npm run dev` | Runs the web app independently in your browser at `http://localhost:3000`. |
 | **Clean Artifacts** | `npm run clean` | Cleans old build output folders (`dist/` and `dist_electron/`). |
+| **Run Unit Tests** | `npm run test` | Runs test suite using Vitest to verify market status logic and UI component rendering. |
 | **Build Web Bundle** | `npm run build` | Cleans previous build files, compiles TypeScript, and builds production static site in `dist/` for GitHub Pages hosting. |
 | **Deploy to GitHub Pages** | `npm run deploy` | Builds production web bundle and deploys `dist/` to GitHub Pages (`gh-pages` branch). |
 | **Build Desktop App** | `npm run electron:build` | Cleans previous build files (`dist/`, `dist_electron/`), compiles TypeScript, and packages standalone macOS binary artifacts (`.dmg`, `.zip`) inside `dist_electron/`. |
