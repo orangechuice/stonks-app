@@ -140,7 +140,7 @@ To compile the TypeScript project and package your own native macOS `.dmg` insta
 ```bash
 npm run electron:build
 ```
-The packaged installers will be placed in the `dist_electron/` directory (e.g. `dist_electron/Stonks-1.0.2-arm64.dmg`).
+The packaged installers will be placed in the `dist_electron/` directory (e.g. `dist_electron/Stonks-1.0.3-arm64.dmg`).
 
 > [!TIP]
 > **Why Local Builds Work Instantly**
