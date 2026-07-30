@@ -14,6 +14,8 @@ export interface ChartDataPoint {
   high?: number;
   low?: number;
   volume?: number;
+  isExtendedHours?: boolean;
+  session?: 'pre' | 'regular' | 'post';
 }
 
 export interface StockQuote {
@@ -36,8 +38,15 @@ export interface StockQuote {
   peRatio?: number;
   avgVolume?: number;
   sparkline: number[];
-  marketState?: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST' | 'OFFLINE';
+  marketState?: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST' | 'POSTPOST' | 'OFFLINE';
   isOffline?: boolean;
+  postMarketPrice?: number;
+  postMarketChange?: number;
+  postMarketChangePercent?: number;
+  preMarketPrice?: number;
+  preMarketChange?: number;
+  preMarketChangePercent?: number;
+  hasPrePostData?: boolean;
 }
 
 export interface SearchResult {

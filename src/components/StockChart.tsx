@@ -200,15 +200,46 @@ export const StockChart: React.FC<StockChartProps> = ({
   const chartW = svgWidth - paddingRight;
   const chartH = svgHeight - paddingBottom - paddingTop;
 
-  // Build SVG Path string dynamically stretching to 100% width
+  // Build SVG Path strings dynamically stretching to 100% width
   const points = chartData.map((d, i) => {
     const x = (i / (chartData.length - 1 || 1)) * chartW;
     const y = paddingTop + chartH - ((d.close - yMin) / yRange) * chartH;
     return { x, y, data: d };
   });
 
-  const pathD = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-  const areaD = `${pathD} L ${chartW} ${paddingTop + chartH} L 0 ${paddingTop + chartH} Z`;
+  const fullPathD = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaD = `${fullPathD} L ${chartW} ${paddingTop + chartH} L 0 ${paddingTop + chartH} Z`;
+
+  // Extended hours segmentation for 1D timeframe
+  const is1DWithExtended = selectedTimeframe === '1D' && chartData.some(d => d.isExtendedHours);
+
+  // Group points by session
+  const prePoints: typeof points = [];
+  const regPoints: typeof points = [];
+  const postPoints: typeof points = [];
+
+  points.forEach(p => {
+    if (p.data.session === 'pre') prePoints.push(p);
+    else if (p.data.session === 'post') postPoints.push(p);
+    else regPoints.push(p);
+  });
+
+  // Ensure continuous line connection between sessions
+  const preLinePoints = prePoints.length > 0
+    ? [...prePoints, ...(regPoints.length > 0 ? [regPoints[0]] : [])]
+    : [];
+  const regLinePoints = regPoints;
+  const postLinePoints = postPoints.length > 0
+    ? [...(regPoints.length > 0 ? [regPoints[regPoints.length - 1]] : []), ...postPoints]
+    : [];
+
+  const prePathD = preLinePoints.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const regPathD = regLinePoints.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const postPathD = postLinePoints.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+
+  // Market Open (9:30 AM) and Market Close (4:00 PM) X positions
+  const marketOpenX = regPoints.length > 0 ? regPoints[0].x : null;
+  const marketCloseX = regPoints.length > 0 ? regPoints[regPoints.length - 1].x : null;
 
   // Previous Close Dashed Reference Y-coordinate
   const prevCloseY = quote?.previousClose ? paddingTop + chartH - ((quote.previousClose - yMin) / yRange) * chartH : -999;
@@ -375,6 +406,32 @@ export const StockChart: React.FC<StockChartProps> = ({
             );
           })}
 
+          {/* Vertical Market Session Boundaries (Market Open 9:30 AM & Market Close 4:00 PM) */}
+          {is1DWithExtended && (
+            <>
+              {marketOpenX != null && prePoints.length > 0 && (
+                <line
+                  x1={marketOpenX}
+                  y1={paddingTop}
+                  x2={marketOpenX}
+                  y2={paddingTop + chartH}
+                  stroke="rgba(255, 255, 255, 0.12)"
+                  strokeDasharray="2 2"
+                />
+              )}
+              {marketCloseX != null && postPoints.length > 0 && (
+                <line
+                  x1={marketCloseX}
+                  y1={paddingTop}
+                  x2={marketCloseX}
+                  y2={paddingTop + chartH}
+                  stroke="rgba(255, 255, 255, 0.12)"
+                  strokeDasharray="2 2"
+                />
+              )}
+            </>
+          )}
+
           {/* Previous Close Reference Line */}
           {prevCloseY >= paddingTop && prevCloseY <= paddingTop + chartH && (
             <line
@@ -390,15 +447,60 @@ export const StockChart: React.FC<StockChartProps> = ({
           {/* Chart Fill Area */}
           <path d={areaD} fill="url(#chartGradient)" />
 
-          {/* Chart Stroke Line */}
-          <path
-            d={pathD}
-            fill="none"
-            stroke={shade.strokeColor}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          {/* Chart Stroke Lines */}
+          {is1DWithExtended ? (
+            <>
+              {/* Pre-Market Segment (Dashed) */}
+              {prePathD && (
+                <path
+                  d={prePathD}
+                  fill="none"
+                  stroke={shade.strokeColor}
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  opacity="0.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Regular Market Hours Segment (Solid) */}
+              {regPathD && (
+                <path
+                  d={regPathD}
+                  fill="none"
+                  stroke={shade.strokeColor}
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Post-Market / After Hours Segment (Dashed) */}
+              {postPathD && (
+                <path
+                  d={postPathD}
+                  fill="none"
+                  stroke={shade.strokeColor}
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  opacity="0.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </>
+          ) : (
+            /* Single Solid Line for non-extended charts */
+            <path
+              d={fullPathD}
+              fill="none"
+              stroke={shade.strokeColor}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
 
           {/* Hover Crosshair & Data Indicator */}
           {hoverPoint && (
@@ -495,7 +597,10 @@ export const StockChart: React.FC<StockChartProps> = ({
               zIndex: 10,
             }}
           >
-            <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>{hoverPoint.data.dateStr}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255, 255, 255, 0.5)' }}>
+              {hoverPoint.data.dateStr}
+              {hoverPoint.data.session === 'post' ? ' (After Hours)' : hoverPoint.data.session === 'pre' ? ' (Pre-Market)' : ''}
+            </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#FFF', fontFamily: 'monospace' }}>
               {formatCurrency(hoverPoint.data.close, quote?.currency)}
             </div>

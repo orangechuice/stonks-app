@@ -35,6 +35,26 @@ export const StockDetail: React.FC<StockDetailProps> = ({
   const displaySymbol = quote?.symbol || symbol.toUpperCase();
   const displayShortName = quote?.shortName || quote?.longName || '';
 
+  // Determine Extended Hours (After Hours / Pre-Market) values
+  let extPrice: number | undefined;
+  let extChangePercent: number | undefined;
+  let extIsPositive = false;
+  let extLabel = '';
+
+  if (quote?.postMarketPrice && (quote.marketState === 'POST' || quote.marketState === 'CLOSED' || quote.marketState === 'POSTPOST' || !quote.marketState)) {
+    extPrice = quote.postMarketPrice;
+    extChangePercent = quote.postMarketChangePercent ?? 0;
+    extIsPositive = extChangePercent >= 0;
+    extLabel = 'After Hours';
+  } else if (quote?.preMarketPrice && quote.marketState === 'PRE') {
+    extPrice = quote.preMarketPrice;
+    extChangePercent = quote.preMarketChangePercent ?? 0;
+    extIsPositive = extChangePercent >= 0;
+    extLabel = 'Pre-Market';
+  }
+
+  const extShade = extChangePercent != null ? getColorShade(extChangePercent) : null;
+
   return (
     <main style={{
       flex: 1,
@@ -64,40 +84,72 @@ export const StockDetail: React.FC<StockDetailProps> = ({
           </div>
         </div>
 
-        {/* Big Price & Dynamic Change Badge */}
-        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, fontFamily: '"JetBrains Mono", monospace', color: '#FFF' }}>
-            {quote ? formatCurrency(quote.regularMarketPrice, quote.currency) : '--'}
+        {/* Dual Price Display: Regular Market & Extended Hours */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          {/* Regular Market Price & Badge */}
+          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 26, fontWeight: 700, fontFamily: '"JetBrains Mono", monospace', color: '#FFF' }}>
+                {quote ? formatCurrency(quote.regularMarketPrice, quote.currency) : '--'}
+              </span>
+              {quote && (
+                <div
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: '"JetBrains Mono", monospace',
+                    backgroundColor: shade.bgColor,
+                    color: shade.textColor,
+                    border: `1px solid ${shade.borderColor}`,
+                    boxShadow: shade.glowColor !== 'transparent' ? `0 0 12px ${shade.glowColor}` : 'none',
+                  }}
+                >
+                  {isPositive ? '+' : ''}{quote.regularMarketChangePercent.toFixed(2)}%
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.4)', marginTop: 3 }}>
+              {quote?.marketState === 'REGULAR' ? 'Live' : 'At Close'}
+            </div>
           </div>
 
-          {/* DYNAMIC SHADED CHANGE BADGE */}
-          <div
-            style={{
-              marginTop: 6,
-              padding: '6px 12px',
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 700,
-              fontFamily: '"JetBrains Mono", monospace',
-              backgroundColor: shade.bgColor,
-              color: shade.textColor,
-              borderColor: shade.borderColor,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              boxShadow: shade.glowColor !== 'transparent' ? `0 0 16px ${shade.glowColor}` : 'none',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            {quote ? (
-              <>
-                {isPositive ? '+' : ''}
-                {quote.regularMarketChange.toFixed(2)} ({isPositive ? '+' : ''}
-                {quote.regularMarketChangePercent.toFixed(2)}%)
-              </>
-            ) : (
-              '--'
-            )}
-          </div>
+          {/* After Hours / Pre-Market Price & Badge */}
+          {extPrice != null && extShade && extChangePercent != null && (
+            <div style={{
+              textAlign: 'right',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.12)',
+              paddingLeft: 20,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 26, fontWeight: 700, fontFamily: '"JetBrains Mono", monospace', color: '#FFF' }}>
+                  {formatCurrency(extPrice, quote?.currency)}
+                </span>
+                <div
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: '"JetBrains Mono", monospace',
+                    backgroundColor: extShade.bgColor,
+                    color: extShade.textColor,
+                    border: `1px solid ${extShade.borderColor}`,
+                    boxShadow: extShade.glowColor !== 'transparent' ? `0 0 12px ${extShade.glowColor}` : 'none',
+                  }}
+                >
+                  {extIsPositive ? '+' : ''}{extChangePercent.toFixed(2)}%
+                </div>
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.4)', marginTop: 3 }}>
+                {extLabel}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

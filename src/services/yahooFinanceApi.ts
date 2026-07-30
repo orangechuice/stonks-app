@@ -241,7 +241,8 @@ export async function fetchStockData(
     url = `https://query1.finance.yahoo.com/v8/finance/chart/${targetSymbol}?period1=${p1}&period2=${p2}&interval=${interval}&includePrePost=false`;
   } else {
     const { range, interval } = TIMEFRAME_CONFIG[timeframe] || TIMEFRAME_CONFIG['1D'];
-    url = `https://query1.finance.yahoo.com/v8/finance/chart/${targetSymbol}?range=${range}&interval=${interval}&includePrePost=false`;
+    const includePrePost = timeframe === '1D' ? 'true' : 'false';
+    url = `https://query1.finance.yahoo.com/v8/finance/chart/${targetSymbol}?range=${range}&interval=${interval}&includePrePost=${includePrePost}`;
   }
 
   const json = await fetchYahooApi(url);
@@ -257,8 +258,20 @@ export async function fetchStockData(
     const lows: (number | null)[] = quoteData.low || [];
     const volumes: (number | null)[] = quoteData.volume || [];
 
+    let regStart: number | undefined;
+    let regEnd: number | undefined;
+
+    if (meta.tradingPeriods?.regular?.[0]?.[0]) {
+      regStart = meta.tradingPeriods.regular[0][0].start;
+      regEnd = meta.tradingPeriods.regular[0][0].end;
+    } else if (meta.currentTradingPeriod?.regular) {
+      regStart = meta.currentTradingPeriod.regular.start;
+      regEnd = meta.currentTradingPeriod.regular.end;
+    }
+
     const chartPoints: ChartDataPoint[] = [];
     const validPrices: number[] = [];
+    const regularPrices: number[] = [];
 
     timestamps.forEach((t, idx) => {
       const c = closes[idx];
@@ -277,7 +290,13 @@ export async function fetchStockData(
           dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: timeframe === '5Y' || timeframe === 'ALL' ? '2-digit' : undefined });
         }
 
-        chartPoints.push({
+        let session: 'pre' | 'regular' | 'post' = 'regular';
+        if (timeframe === '1D' && regStart && regEnd) {
+          if (t < regStart) session = 'pre';
+          else if (t > regEnd) session = 'post';
+        }
+
+        const point: ChartDataPoint = {
           timestamp: t,
           dateStr,
           close: Number(c.toFixed(2)),
@@ -285,19 +304,66 @@ export async function fetchStockData(
           high: highs[idx] ? Number(highs[idx]?.toFixed(2)) : Number(c.toFixed(2)),
           low: lows[idx] ? Number(lows[idx]?.toFixed(2)) : Number(c.toFixed(2)),
           volume: volumes[idx] || 0,
-        });
+          isExtendedHours: session !== 'regular',
+          session,
+        };
+
+        chartPoints.push(point);
         validPrices.push(c);
+        if (session === 'regular') {
+          regularPrices.push(c);
+        }
       }
     });
 
+    const pricesForCalc = regularPrices.length > 0 ? regularPrices : validPrices;
     const lastPointPrice = validPrices[validPrices.length - 1];
-    const currentPrice = (isCustom && lastPointPrice) ? lastPointPrice : (meta.regularMarketPrice || lastPointPrice || 100);
+    const lastRegularPrice = regularPrices.length > 0 ? regularPrices[regularPrices.length - 1] : lastPointPrice;
+
+    const currentPrice = (isCustom && lastPointPrice)
+      ? lastPointPrice
+      : (meta.regularMarketPrice || lastRegularPrice || 100);
+
     const previousClose = (isCustom || timeframe !== '1D')
       ? (chartPoints[0]?.open || validPrices[0] || meta.chartPreviousClose || meta.previousClose || currentPrice)
-      : (meta.chartPreviousClose || meta.previousClose || validPrices[0] || currentPrice);
+      : (meta.chartPreviousClose || meta.previousClose || pricesForCalc[0] || currentPrice);
 
     const change = currentPrice - previousClose;
     const changePercent = previousClose !== 0 ? (change / previousClose) * 100 : 0;
+
+    // Parse pre and post market data
+    let postMarketPrice: number | undefined;
+    let postMarketChange: number | undefined;
+    let postMarketChangePercent: number | undefined;
+
+    if (meta.postMarketPrice && meta.postMarketPrice > 0) {
+      postMarketPrice = Number(meta.postMarketPrice.toFixed(2));
+      postMarketChange = meta.postMarketChange != null
+        ? Number(meta.postMarketChange.toFixed(2))
+        : Number((postMarketPrice - currentPrice).toFixed(2));
+      postMarketChangePercent = meta.postMarketChangePercent != null
+        ? Number(meta.postMarketChangePercent.toFixed(2))
+        : (currentPrice !== 0 ? Number(((postMarketChange / currentPrice) * 100).toFixed(2)) : 0);
+    } else if (lastPointPrice && lastRegularPrice && Math.abs(lastPointPrice - lastRegularPrice) > 0.001) {
+      // Fallback post market price from chart points if meta doesn't include it directly
+      postMarketPrice = Number(lastPointPrice.toFixed(2));
+      postMarketChange = Number((postMarketPrice - currentPrice).toFixed(2));
+      postMarketChangePercent = currentPrice !== 0 ? Number(((postMarketChange / currentPrice) * 100).toFixed(2)) : 0;
+    }
+
+    let preMarketPrice: number | undefined;
+    let preMarketChange: number | undefined;
+    let preMarketChangePercent: number | undefined;
+
+    if (meta.preMarketPrice && meta.preMarketPrice > 0) {
+      preMarketPrice = Number(meta.preMarketPrice.toFixed(2));
+      preMarketChange = meta.preMarketChange != null
+        ? Number(meta.preMarketChange.toFixed(2))
+        : Number((preMarketPrice - previousClose).toFixed(2));
+      preMarketChangePercent = meta.preMarketChangePercent != null
+        ? Number(meta.preMarketChangePercent.toFixed(2))
+        : (previousClose !== 0 ? Number(((preMarketChange / previousClose) * 100).toFixed(2)) : 0);
+    }
 
     const quoteDetails = includeDetails
       ? await fetchQuoteDetails(symbol, currentPrice, isCustom)
@@ -314,15 +380,22 @@ export async function fetchStockData(
       regularMarketChangePercent: Number(changePercent.toFixed(2)),
       previousClose: Number(previousClose.toFixed(2)),
       regularMarketOpen: meta.regularMarketOpen || chartPoints[0]?.open || currentPrice,
-      regularMarketDayHigh: meta.regularMarketDayHigh || Math.max(...validPrices, currentPrice),
-      regularMarketDayLow: meta.regularMarketDayLow || Math.min(...validPrices, currentPrice),
+      regularMarketDayHigh: meta.regularMarketDayHigh || Math.max(...pricesForCalc, currentPrice),
+      regularMarketDayLow: meta.regularMarketDayLow || Math.min(...pricesForCalc, currentPrice),
       regularMarketVolume: meta.regularMarketVolume || meta.volume || 0,
       fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh || currentPrice * 1.15,
       fiftyTwoWeekLow: meta.fiftyTwoWeekLow || currentPrice * 0.85,
       marketCap: resolveMarketCap(symbol, quoteDetails.marketCap ?? meta.marketCap),
       peRatio: quoteDetails.peRatio ?? meta.trailingPE ?? meta.peRatio,
-      sparkline: downsamplePrices(validPrices, 30),
+      sparkline: downsamplePrices(pricesForCalc, 30),
       marketState: meta.marketState || 'CLOSED',
+      postMarketPrice,
+      postMarketChange,
+      postMarketChangePercent,
+      preMarketPrice,
+      preMarketChange,
+      preMarketChangePercent,
+      hasPrePostData: !!(meta.hasPrePostData || postMarketPrice || preMarketPrice),
     };
 
     const stockData = { quote, chart: chartPoints };

@@ -68,6 +68,7 @@ stonks-app/
 
 4. **Data Service (`src/services/yahooFinanceApi.ts`)**:
    - Queries Yahoo Finance endpoints for quotes, historical candles, and sparklines via Electron main IPC (desktop) or CORS proxies (`corsproxy.io`, `api.allorigins.win`) for web browser deployment.
+   - Enables `includePrePost=true` on the `1D` timeframe to fetch pre-market and post-market (after-hours) stock prices, categorizing data points into `pre`, `regular`, and `post` sessions.
    - Maintains an in-memory 30-second TTL cache for stock data requests to enable instant ticker switching without loading flicker.
    - Calculates percentage gains/losses, sparklines, and maps timeframes (`1D`, `1W`, `1M`, `3M`, `6M`, `YTD`, `1Y`, `5Y`, `ALL`, `CUSTOM`).
    - Defers detailed stat queries (Market Cap & P/E from Nasdaq endpoints) using the `includeDetails` parameter so background watchlist loads only fetch single chart requests, drastically reducing network requests and bypassing web CORS proxy rate limits.
