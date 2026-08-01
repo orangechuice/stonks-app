@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/icon.png" width="128" height="128" alt="Stonks Logo" />
+  <img src="public/icon.png?v=2" width="128" height="128" alt="Stonks Logo" />
 </p>
 
 <h1 align="center">Stonks</h1>
