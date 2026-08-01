@@ -74,19 +74,22 @@ export const StockChart: React.FC<StockChartProps> = ({
     return (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         {/* Timeframe Control Bar */}
-        <div style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.06)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: 10,
-          padding: 4,
-          gap: 3,
-          marginBottom: 16,
-          overflowX: 'auto',
-          userSelect: 'none',
-        }}>
+        <div
+          className="no-scrollbar"
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 10,
+            padding: 3,
+            gap: 2,
+            marginBottom: 16,
+            overflowX: 'hidden',
+            userSelect: 'none',
+          }}
+        >
           {TIMEFRAMES.map((tf) => {
             const isSelected = selectedTimeframe === tf;
             return (
@@ -96,8 +99,8 @@ export const StockChart: React.FC<StockChartProps> = ({
                 style={{
                   flex: '1 1 0%',
                   minWidth: 0,
-                  padding: '8px 0',
-                  fontSize: '13px',
+                  padding: '6px 2px',
+                  fontSize: 'clamp(10px, 2.2vw, 12px)',
                   fontWeight: 700,
                   fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
                   borderRadius: '7px',
@@ -110,13 +113,13 @@ export const StockChart: React.FC<StockChartProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 4,
+                  gap: 2,
                 }}
               >
                 {tf === 'CUSTOM' ? (
                   <>
-                    <Calendar size={13} />
-                    <span>{isSelected ? formatCustomBadgeLabel() : 'CUSTOM'}</span>
+                    <Calendar size={11} />
+                    <span>CUSTOM</span>
                   </>
                 ) : (
                   tf
@@ -266,19 +269,22 @@ export const StockChart: React.FC<StockChartProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }} ref={containerRef}>
       {/* 100% Fully Responsive Segmented Timeframe Control Bar */}
-      <div style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 10,
-        padding: 4,
-        gap: 3,
-        marginBottom: selectedTimeframe === 'CUSTOM' ? 12 : 24,
-        overflowX: 'auto',
-        userSelect: 'none',
-      }}>
+      <div
+        className="no-scrollbar"
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 10,
+          padding: 3,
+          gap: 2,
+          marginBottom: selectedTimeframe === 'CUSTOM' ? 12 : 24,
+          overflowX: 'hidden',
+          userSelect: 'none',
+        }}
+      >
         {TIMEFRAMES.map((tf) => {
           const isSelected = selectedTimeframe === tf;
           return (
@@ -288,8 +294,8 @@ export const StockChart: React.FC<StockChartProps> = ({
               style={{
                 flex: '1 1 0%',
                 minWidth: 0,
-                padding: '8px 4px',
-                fontSize: '13px',
+                padding: '6px 2px',
+                fontSize: 'clamp(10px, 2.2vw, 12px)',
                 fontWeight: 700,
                 fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif',
                 borderRadius: '7px',
@@ -304,7 +310,7 @@ export const StockChart: React.FC<StockChartProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 4,
+                gap: 2,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
@@ -321,7 +327,7 @@ export const StockChart: React.FC<StockChartProps> = ({
             >
               {tf === 'CUSTOM' ? (
                 <>
-                  <Calendar size={13} />
+                  <Calendar size={11} />
                   <span>CUSTOM</span>
                 </>
               ) : (

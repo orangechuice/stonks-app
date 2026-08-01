@@ -274,6 +274,18 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* No Scrollbar Utility */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Basic helper utilities */
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
