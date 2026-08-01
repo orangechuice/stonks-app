@@ -307,6 +307,7 @@ export const App: React.FC = () => {
             customRange={customDateRange}
             onApplyCustomRange={handleApplyCustomRange}
             indexQuotes={watchlistQuotes.filter((q) => q.symbol.startsWith('^'))}
+            onSelectSymbol={handleSelectSymbol}
           />
         )}
       </div>
