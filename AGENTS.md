@@ -175,6 +175,51 @@ npm run electron:build
 
 ---
 
+## 🏷 Version Bumping & Release Workflow
+
+When preparing a new release or bumping the application version (e.g., `1.0.3` $\rightarrow$ `1.0.4`), follow this exact step-by-step workflow:
+
+### 1. Update Version in Core Files
+- **`package.json`**: Update `"version": "X.Y.Z"`.
+- **`package-lock.json`**: Update `"version": "X.Y.Z"` in root and `packages[""]`.
+- **`README.md`**: Update version strings (e.g., `dist_electron/Stonks-X.Y.Z-arm64.dmg`) and append image cache buster (e.g., `public/icon.png?v=X.Y.Z`).
+
+### 2. Verify Tests & Local Builds
+Run verification commands before committing:
+```bash
+npm run test
+npm run build
+npm run electron:build
+```
+
+### 3. Commit & Tag Creation Rules
+> [!IMPORTANT]
+> **Strict Tag Target Rule**:
+> The git tag `vX.Y.Z` **MUST** point directly to the version bump commit (`bump version to X.Y.Z`). It must **NOT** be attached to later feature commits.
+
+- **Step 3a — Commit version bump**:
+  ```bash
+  git add package.json package-lock.json README.md
+  git commit -m "bump version to X.Y.Z"
+  git push origin main
+  ```
+- **Step 3b — Create and push tag on the version bump commit**:
+  - If tagging immediately on the bump commit:
+    ```bash
+    git tag vX.Y.Z
+    git push origin vX.Y.Z
+    ```
+  - If tagging after subsequent commits exist on `main`, explicitly target the version bump commit hash:
+    ```bash
+    git tag vX.Y.Z <bump-commit-hash>
+    git push origin vX.Y.Z
+    ```
+
+### 4. GitHub Release Trigger
+Pushing the `vX.Y.Z` tag automatically triggers `.github/workflows/release.yml`, which compiles standalone macOS `.dmg` and `.zip` distribution packages and creates a GitHub Release.
+
+---
+
 ## 📝 Guidelines for Updating Documentation (`AGENTS.md` & `README.md`)
 
 **IMPORTANT FOR AI AGENTS & DEVELOPERS:**
