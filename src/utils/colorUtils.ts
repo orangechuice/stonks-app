@@ -105,6 +105,29 @@ export function formatCurrency(value: number, currency = 'USD'): string {
 }
 
 /**
+ * Format a number with standard thousand separator commas and fixed decimals.
+ * e.g., 4379.5 -> "4,379.50", -237523.08 -> "-237,523.08"
+ */
+export function formatNumber(value: number | undefined | null, decimals = 2): string {
+  if (value === undefined || value === null || isNaN(value)) return '--';
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+/**
+ * Format percentage change with sign prefix and standard thousand separator commas.
+ * e.g., 4379.5 -> "+4,379.50%", -237523.08 -> "-237,523.08%"
+ */
+export function formatPercent(value: number | undefined | null, decimals = 2, includeSign = true): string {
+  if (value === undefined || value === null || isNaN(value)) return '--%';
+  const formatted = formatNumber(value, decimals);
+  const sign = includeSign && value >= 0 ? '+' : '';
+  return `${sign}${formatted}%`;
+}
+
+/**
  * Format compact numbers for Market Cap / Volume (e.g. 4.172T, 7.408B, 43.77B)
  */
 export function formatCompactNumber(value: number | undefined): string {

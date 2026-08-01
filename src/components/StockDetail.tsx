@@ -1,6 +1,6 @@
 import React from 'react';
 import { StockQuote, ChartDataPoint, Timeframe, CustomDateRange } from '../types/stock';
-import { getColorShade, formatCurrency, formatCompactNumber } from '../utils/colorUtils';
+import { getColorShade, formatCurrency, formatCompactNumber, formatNumber, formatPercent } from '../utils/colorUtils';
 import { StockChart } from './StockChart';
 
 interface StockDetailProps {
@@ -108,7 +108,7 @@ export const StockDetail: React.FC<StockDetailProps> = ({
                     boxShadow: shade.glowColor !== 'transparent' ? `0 0 12px ${shade.glowColor}` : 'none',
                   }}
                 >
-                  {isPositive ? '+' : ''}{quote.regularMarketChangePercent.toFixed(2)}%
+                  {formatPercent(quote.regularMarketChangePercent)}
                 </div>
               )}
             </div>
@@ -156,7 +156,7 @@ export const StockDetail: React.FC<StockDetailProps> = ({
                     boxShadow: extShade.glowColor !== 'transparent' ? `0 0 12px ${extShade.glowColor}` : 'none',
                   }}
                 >
-                  {extIsPositive ? '+' : ''}{extChangePercent.toFixed(2)}%
+                  {formatPercent(extChangePercent)}
                 </div>
               </div>
               <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255, 255, 255, 0.4)', marginTop: 3 }}>
@@ -255,7 +255,7 @@ export const StockDetail: React.FC<StockDetailProps> = ({
           <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 8 }}>
             <div style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.4)', marginBottom: 2 }}>P/E Ratio</div>
             <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'monospace', color: '#FFF' }}>
-              {quote?.peRatio ? quote.peRatio.toFixed(2) : '--'}
+              {quote?.peRatio ? formatNumber(quote.peRatio, 2) : '--'}
             </div>
           </div>
         </div>

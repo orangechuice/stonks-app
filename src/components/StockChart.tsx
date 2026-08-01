@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChartDataPoint, Timeframe, StockQuote, CustomDateRange } from '../types/stock';
-import { getColorShade, formatCurrency } from '../utils/colorUtils';
+import { getColorShade, formatCurrency, formatNumber } from '../utils/colorUtils';
 import { DateRangePickerModal } from './DateRangePickerModal';
 import { Calendar } from 'lucide-react';
 
@@ -552,7 +552,7 @@ export const StockChart: React.FC<StockChartProps> = ({
                 whiteSpace: 'nowrap',
               }}
             >
-              {priceVal.toFixed(2)}
+              {formatNumber(priceVal, 2)}
             </div>
           );
         })}

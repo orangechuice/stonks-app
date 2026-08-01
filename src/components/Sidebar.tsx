@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Trash2, X, GripVertical } from 'lucide-react';
 import { StockQuote, SearchResult, Timeframe, BadgeDisplayMode } from '../types/stock';
-import { getColorShade, formatCurrency, formatCompactNumber } from '../utils/colorUtils';
+import { getColorShade, formatCurrency, formatCompactNumber, formatNumber, formatPercent } from '../utils/colorUtils';
 import { searchTickers } from '../services/yahooFinanceApi';
 
 interface SidebarProps {
@@ -425,14 +425,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       if (isOffline) return '--';
                       if (badgeDisplayMode === 'priceChange') {
                         const absChange = Math.abs(stock.regularMarketChange);
-                        const formatted = absChange > 0 && absChange < 1 ? stock.regularMarketChange.toFixed(3) : stock.regularMarketChange.toFixed(2);
+                        const decimals = absChange > 0 && absChange < 1 ? 3 : 2;
+                        const formatted = formatNumber(stock.regularMarketChange, decimals);
                         return `${isPositive ? '+' : ''}${formatted}`;
                       }
                       if (badgeDisplayMode === 'marketCap') {
                         return formatCompactNumber(stock.marketCap);
                       }
                       // Default 'percent'
-                      return `${isPositive ? '+' : ''}${stock.regularMarketChangePercent.toFixed(2)}%`;
+                      return formatPercent(stock.regularMarketChangePercent);
                     })()}
                   </div>
                 </div>
