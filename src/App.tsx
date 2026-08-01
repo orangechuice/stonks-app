@@ -6,7 +6,7 @@ import { SearchModal } from './components/SearchModal';
 import { MobileDetailSheet } from './components/MobileDetailSheet';
 import { useIsMobile } from './hooks/useMediaQuery';
 import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode, CustomDateRange } from './types/stock';
-import { fetchStockData } from './services/yahooFinanceApi';
+import { fetchStockData, getIsRateLimited, subscribeRateLimit } from './services/yahooFinanceApi';
 
 const DEFAULT_SYMBOLS = ['^GSPC', '^IXIC', '^DJI', 'AAPL', 'NVDA', 'MSFT', 'GOOGL', 'AMZN'];
 const LOCAL_STORAGE_KEY = 'mac_stock_app_watchlist';
@@ -82,6 +82,13 @@ export const App: React.FC = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
+  const [isRateLimited, setIsRateLimited] = useState<boolean>(() => getIsRateLimited());
+
+  useEffect(() => {
+    return subscribeRateLimit((limited) => {
+      setIsRateLimited(limited);
+    });
+  }, []);
 
   const handleSelectSymbol = (symbol: string) => {
     setSelectedSymbol(symbol);
@@ -282,6 +289,7 @@ export const App: React.FC = () => {
             setIsSearchOpen={setIsSearchOpen}
             selectedTimeframe={selectedTimeframe}
             isMobile={isMobile}
+            isRateLimited={isRateLimited}
           />
         )}
 
@@ -296,6 +304,7 @@ export const App: React.FC = () => {
             isLoading={isLoadingChart}
             customRange={customDateRange}
             onApplyCustomRange={handleApplyCustomRange}
+            isRateLimited={isRateLimited}
           />
         )}
 
@@ -314,6 +323,7 @@ export const App: React.FC = () => {
             onApplyCustomRange={handleApplyCustomRange}
             indexQuotes={watchlistQuotes.filter((q) => q.symbol.startsWith('^'))}
             onSelectSymbol={handleSelectSymbol}
+            isRateLimited={isRateLimited}
           />
         )}
       </div>
@@ -324,6 +334,7 @@ export const App: React.FC = () => {
         onClose={() => setIsSearchModalOpen(false)}
         onAddTicker={handleAddTicker}
         watchlist={watchlistQuotes}
+        isRateLimited={isRateLimited}
       />
     </div>
   );

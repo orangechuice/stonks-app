@@ -17,6 +17,7 @@ interface MobileDetailSheetProps {
   onApplyCustomRange?: (range: CustomDateRange) => void;
   indexQuotes?: StockQuote[];
   onSelectSymbol?: (symbol: string) => void;
+  isRateLimited?: boolean;
 }
 
 export const MobileDetailSheet: React.FC<MobileDetailSheetProps> = ({
@@ -32,6 +33,7 @@ export const MobileDetailSheet: React.FC<MobileDetailSheetProps> = ({
   onApplyCustomRange,
   indexQuotes = [],
   onSelectSymbol,
+  isRateLimited = false,
 }) => {
   const [dragOffsetY, setDragOffsetY] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -302,6 +304,7 @@ export const MobileDetailSheet: React.FC<MobileDetailSheetProps> = ({
             isLoading={isLoading}
             customRange={customRange}
             onApplyCustomRange={onApplyCustomRange}
+            isRateLimited={isRateLimited}
           />
         </div>
       </div>

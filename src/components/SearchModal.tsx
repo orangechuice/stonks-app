@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, X } from 'lucide-react';
+import { Search, Plus, X, AlertTriangle } from 'lucide-react';
 import { SearchResult, StockQuote } from '../types/stock';
 import { searchTickers } from '../services/yahooFinanceApi';
 
@@ -8,6 +8,7 @@ interface SearchModalProps {
   onClose: () => void;
   onAddTicker: (symbol: string) => void;
   watchlist: StockQuote[];
+  isRateLimited?: boolean;
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({
@@ -15,6 +16,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onClose,
   onAddTicker,
   watchlist,
+  isRateLimited = false,
 }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -128,6 +130,26 @@ export const SearchModal: React.FC<SearchModalProps> = ({
             ESC
           </kbd>
         </div>
+
+        {/* Rate Limit Alert Notice */}
+        {isRateLimited && !window.electronAPI && (
+          <div style={{
+            margin: '12px 16px 4px 16px',
+            padding: '10px 14px',
+            borderRadius: 10,
+            backgroundColor: 'rgba(255, 159, 10, 0.12)',
+            border: '1px solid rgba(255, 159, 10, 0.25)',
+            color: '#FF9F0A',
+            fontSize: 12,
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+          }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+            <span>Rate limit exceeded (HTTP 429). Web proxy throttling search requests. Retrying shortly...</span>
+          </div>
+        )}
 
         {/* Results List */}
         <div style={{ maxHeight: '360px', overflowY: 'auto' }} className="custom-scrollbar">

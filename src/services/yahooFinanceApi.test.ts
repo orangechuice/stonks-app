@@ -73,3 +73,18 @@ describe('deriveMarketState', () => {
     vi.restoreAllMocks();
   });
 });
+
+describe('rate limit state management', () => {
+  it('provides getIsRateLimited and subscribeRateLimit', async () => {
+    const { getIsRateLimited, subscribeRateLimit } = await import('./yahooFinanceApi');
+    expect(typeof getIsRateLimited()).toBe('boolean');
+    
+    let receivedValue: boolean | null = null;
+    const unsubscribe = subscribeRateLimit((val) => {
+      receivedValue = val;
+    });
+    expect(receivedValue).toBe(getIsRateLimited());
+    unsubscribe();
+  });
+});
+

@@ -115,17 +115,61 @@ const TIMEFRAME_CONFIG: Record<Timeframe, { range: string; interval: string }> =
   'CUSTOM': { range: '1d', interval: '5m' },
 };
 
+let isRateLimitedState = false;
+let rateLimitCooldownTimer: ReturnType<typeof setTimeout> | null = null;
+type RateLimitListener = (isLimited: boolean) => void;
+const rateLimitListeners = new Set<RateLimitListener>();
+
+export function getIsRateLimited(): boolean {
+  return isRateLimitedState;
+}
+
+export function subscribeRateLimit(listener: RateLimitListener): () => void {
+  rateLimitListeners.add(listener);
+  listener(isRateLimitedState);
+  return () => {
+    rateLimitListeners.delete(listener);
+  };
+}
+
+function notifyRateLimit(isLimited: boolean) {
+  if (isRateLimitedState === isLimited) return;
+  isRateLimitedState = isLimited;
+  rateLimitListeners.forEach((fn) => fn(isLimited));
+}
+
+function markRateLimited() {
+  notifyRateLimit(true);
+  if (rateLimitCooldownTimer) clearTimeout(rateLimitCooldownTimer);
+  rateLimitCooldownTimer = setTimeout(() => {
+    notifyRateLimit(false);
+  }, 15000);
+}
+
+function markRateLimitResolved() {
+  if (rateLimitCooldownTimer) clearTimeout(rateLimitCooldownTimer);
+  notifyRateLimit(false);
+}
+
 async function fetchYahooApi(url: string) {
   // 1. Desktop app: fetch natively via Electron main process IPC handler (secure, bypasses browser CORS)
   if (window.electronAPI?.fetchStockApi) {
     const data = await window.electronAPI.fetchStockApi(url);
-    if (data) return data;
+    if (data) {
+      markRateLimitResolved();
+      return data;
+    }
   }
+
+  let hitProxyError = false;
 
   // 2. Browser web mode fallback (direct fetch)
   try {
     const res = await fetch(url);
-    if (res.ok) return await res.json();
+    if (res.ok) {
+      markRateLimitResolved();
+      return await res.json();
+    }
   } catch (e) {
     // Direct fetch failed (CORS error in browser)
   }
@@ -134,18 +178,31 @@ async function fetchYahooApi(url: string) {
   try {
     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
     const proxyRes = await fetch(proxyUrl);
-    if (proxyRes.ok) return await proxyRes.json();
+    if (proxyRes.ok) {
+      markRateLimitResolved();
+      return await proxyRes.json();
+    }
+    hitProxyError = true;
   } catch (proxyError) {
-    // Primary proxy failed
+    hitProxyError = true;
   }
 
   // 4. Try secondary CORS proxy (api.allorigins.win)
   try {
     const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     const proxyRes2 = await fetch(proxyUrl2);
-    if (proxyRes2.ok) return await proxyRes2.json();
+    if (proxyRes2.ok) {
+      markRateLimitResolved();
+      return await proxyRes2.json();
+    }
+    hitProxyError = true;
   } catch (proxyError2) {
+    hitProxyError = true;
     console.warn('All CORS proxies failed for URL:', url, proxyError2);
+  }
+
+  if (hitProxyError) {
+    markRateLimited();
   }
 
   return null;

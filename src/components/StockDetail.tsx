@@ -2,6 +2,7 @@ import React from 'react';
 import { StockQuote, ChartDataPoint, Timeframe, CustomDateRange } from '../types/stock';
 import { getColorShade, formatCurrency, formatCompactNumber, formatNumber, formatPercent } from '../utils/colorUtils';
 import { StockChart } from './StockChart';
+import { AlertTriangle } from 'lucide-react';
 
 interface StockDetailProps {
   symbol: string;
@@ -12,6 +13,7 @@ interface StockDetailProps {
   isLoading: boolean;
   customRange?: CustomDateRange;
   onApplyCustomRange?: (range: CustomDateRange) => void;
+  isRateLimited?: boolean;
 }
 
 export const StockDetail: React.FC<StockDetailProps> = ({
@@ -23,6 +25,7 @@ export const StockDetail: React.FC<StockDetailProps> = ({
   isLoading,
   customRange,
   onApplyCustomRange,
+  isRateLimited = false,
 }) => {
   const shade = quote ? getColorShade(quote.regularMarketChangePercent) : {
     bgColor: 'rgba(255, 255, 255, 0.08)',
@@ -184,6 +187,7 @@ export const StockDetail: React.FC<StockDetailProps> = ({
           isLoading={isLoading}
           customRange={customRange}
           onApplyCustomRange={onApplyCustomRange}
+          isRateLimited={isRateLimited}
         />
       </div>
 

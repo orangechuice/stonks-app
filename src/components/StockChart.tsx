@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChartDataPoint, Timeframe, StockQuote, CustomDateRange } from '../types/stock';
 import { getColorShade, formatCurrency, formatNumber } from '../utils/colorUtils';
 import { DateRangePickerModal } from './DateRangePickerModal';
-import { Calendar } from 'lucide-react';
+import { Calendar, AlertTriangle } from 'lucide-react';
 
 interface StockChartProps {
   quote?: StockQuote | null;
@@ -12,6 +12,7 @@ interface StockChartProps {
   isLoading: boolean;
   customRange?: CustomDateRange;
   onApplyCustomRange?: (range: CustomDateRange) => void;
+  isRateLimited?: boolean;
 }
 
 const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'ALL', 'CUSTOM'];
@@ -27,6 +28,7 @@ export const StockChart: React.FC<StockChartProps> = ({
     endDate: new Date().toISOString().split('T')[0],
   },
   onApplyCustomRange,
+  isRateLimited = false,
 }) => {
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; data: ChartDataPoint } | null>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -150,6 +152,58 @@ export const StockChart: React.FC<StockChartProps> = ({
           {isLoading ? (
             <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: 14, fontWeight: 500 }}>
               Loading stock chart...
+            </div>
+          ) : isRateLimited || quote?.isRateLimited || (!window.electronAPI && (quote?.isOffline || quote?.marketState === 'OFFLINE' || !quote)) ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              maxWidth: 440,
+              padding: '20px 24px',
+              borderRadius: 14,
+              backgroundColor: 'rgba(255, 159, 10, 0.1)',
+              border: '1px solid rgba(255, 159, 10, 0.25)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+            }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 159, 10, 0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FF9F0A',
+                marginBottom: 12,
+              }}>
+                <AlertTriangle size={24} />
+              </div>
+              <div style={{
+                fontSize: 17,
+                fontWeight: 700,
+                color: '#FF9F0A',
+                letterSpacing: '-0.01em',
+                marginBottom: 6,
+              }}>
+                Rate Limit Exceeded (HTTP 429)
+              </div>
+              <div style={{
+                fontSize: 13,
+                fontWeight: 400,
+                color: 'rgba(255, 255, 255, 0.75)',
+                lineHeight: 1.5,
+                marginBottom: 8,
+              }}>
+                Public CORS proxies for web mode are temporarily throttling requests due to high traffic.
+              </div>
+              <div style={{
+                fontSize: 11,
+                fontWeight: 500,
+                color: 'rgba(255, 255, 255, 0.45)',
+                lineHeight: 1.4,
+              }}>
+                Please wait a few seconds for automatic recovery, or use the standalone macOS desktop app for direct access.
+              </div>
             </div>
           ) : (
             <>

@@ -40,6 +40,7 @@ export interface StockQuote {
   sparkline: number[];
   marketState?: 'REGULAR' | 'CLOSED' | 'PRE' | 'POST' | 'POSTPOST' | 'OFFLINE';
   isOffline?: boolean;
+  isRateLimited?: boolean;
   postMarketPrice?: number;
   postMarketChange?: number;
   postMarketChangePercent?: number;

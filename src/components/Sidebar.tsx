@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Trash2, X, GripVertical } from 'lucide-react';
+import { Search, Plus, Trash2, X, GripVertical, AlertTriangle } from 'lucide-react';
 import { StockQuote, SearchResult, Timeframe, BadgeDisplayMode } from '../types/stock';
 import { getColorShade, formatCurrency, formatCompactNumber, formatNumber, formatPercent } from '../utils/colorUtils';
 import { searchTickers } from '../services/yahooFinanceApi';
@@ -17,6 +17,7 @@ interface SidebarProps {
   setIsSearchOpen: (open: boolean) => void;
   selectedTimeframe: Timeframe;
   isMobile?: boolean;
+  isRateLimited?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -32,6 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsSearchOpen,
   selectedTimeframe,
   isMobile = false,
+  isRateLimited = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -247,6 +249,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
+
+      {/* Web Proxy Rate Limit Alert Banner */}
+      {isRateLimited && !window.electronAPI && (
+        <div style={{
+          margin: '8px 12px 4px 12px',
+          padding: '8px 12px',
+          borderRadius: 8,
+          backgroundColor: 'rgba(255, 159, 10, 0.12)',
+          border: '1px solid rgba(255, 159, 10, 0.3)',
+          color: '#FF9F0A',
+          fontSize: 11,
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+        }}>
+          <AlertTriangle size={14} style={{ flexShrink: 0 }} />
+          <div style={{ lineHeight: 1.3 }}>
+            <span style={{ fontWeight: 700 }}>Rate Limited (HTTP 429)</span>
+            <div style={{ fontSize: 10, opacity: 0.85 }}>Web CORS proxy is throttling requests. Retrying shortly...</div>
+          </div>
+        </div>
+      )}
 
       {/* Section Header */}
       <div style={{
