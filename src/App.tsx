@@ -27,6 +27,12 @@ export const App: React.FC = () => {
 
   // Load Watchlist & Settings from Native Application Settings (Desktop) if available
   useEffect(() => {
+    if (window.electronAPI) {
+      document.body.classList.add('electron-app');
+    } else {
+      document.body.classList.remove('electron-app');
+    }
+
     if (window.electronAPI?.getSettings) {
       window.electronAPI.getSettings().then((settings) => {
         if (settings) {
