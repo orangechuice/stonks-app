@@ -3,6 +3,8 @@ import { Titlebar } from './components/Titlebar';
 import { Sidebar } from './components/Sidebar';
 import { StockDetail } from './components/StockDetail';
 import { SearchModal } from './components/SearchModal';
+import { MobileDetailSheet } from './components/MobileDetailSheet';
+import { useIsMobile } from './hooks/useMediaQuery';
 import { StockQuote, ChartDataPoint, Timeframe, BadgeDisplayMode, CustomDateRange } from './types/stock';
 import { fetchStockData } from './services/yahooFinanceApi';
 
@@ -66,11 +68,21 @@ export const App: React.FC = () => {
     return 'percent';
   });
 
+  const isMobile = useIsMobile(768);
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
+
+  const handleSelectSymbol = (symbol: string) => {
+    setSelectedSymbol(symbol);
+    if (isMobile) {
+      setIsMobileDetailOpen(true);
+    }
+  };
 
   // Save Watchlist, Badge Display Mode, and Selected Symbol to Native App Settings & LocalStorage
   useEffect(() => {
@@ -250,11 +262,11 @@ export const App: React.FC = () => {
       {/* Main App Body */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Watchlist Sidebar */}
-        {isSidebarOpen && (
+        {(isSidebarOpen || isMobile) && (
           <Sidebar
             watchlist={watchlistQuotes}
             selectedSymbol={selectedSymbol}
-            onSelectSymbol={setSelectedSymbol}
+            onSelectSymbol={handleSelectSymbol}
             onAddTicker={handleAddTicker}
             onRemoveTicker={handleRemoveTicker}
             onReorderWatchlist={handleReorderWatchlist}
@@ -263,20 +275,40 @@ export const App: React.FC = () => {
             isSearchOpen={isSearchOpen}
             setIsSearchOpen={setIsSearchOpen}
             selectedTimeframe={selectedTimeframe}
+            isMobile={isMobile}
           />
         )}
 
-        {/* Stock Detail & Chart View */}
-        <StockDetail
-          symbol={selectedSymbol}
-          quote={selectedQuote}
-          chartData={chartData}
-          selectedTimeframe={selectedTimeframe}
-          onSelectTimeframe={setSelectedTimeframe}
-          isLoading={isLoadingChart}
-          customRange={customDateRange}
-          onApplyCustomRange={handleApplyCustomRange}
-        />
+        {/* Stock Detail & Chart View (Desktop) */}
+        {!isMobile && (
+          <StockDetail
+            symbol={selectedSymbol}
+            quote={selectedQuote}
+            chartData={chartData}
+            selectedTimeframe={selectedTimeframe}
+            onSelectTimeframe={setSelectedTimeframe}
+            isLoading={isLoadingChart}
+            customRange={customDateRange}
+            onApplyCustomRange={handleApplyCustomRange}
+          />
+        )}
+
+        {/* Mobile Detail Bottom Sheet (Mobile) */}
+        {isMobile && (
+          <MobileDetailSheet
+            isOpen={isMobileDetailOpen}
+            onClose={() => setIsMobileDetailOpen(false)}
+            symbol={selectedSymbol}
+            quote={selectedQuote}
+            chartData={chartData}
+            selectedTimeframe={selectedTimeframe}
+            onSelectTimeframe={setSelectedTimeframe}
+            isLoading={isLoadingChart}
+            customRange={customDateRange}
+            onApplyCustomRange={handleApplyCustomRange}
+            indexQuotes={watchlistQuotes.filter((q) => q.symbol.startsWith('^'))}
+          />
+        )}
       </div>
 
       {/* Spotlight Command Palette Search Modal */}

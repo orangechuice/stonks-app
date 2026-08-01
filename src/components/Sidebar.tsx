@@ -16,6 +16,7 @@ interface SidebarProps {
   isSearchOpen: boolean;
   setIsSearchOpen: (open: boolean) => void;
   selectedTimeframe: Timeframe;
+  isMobile?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isSearchOpen,
   setIsSearchOpen,
   selectedTimeframe,
+  isMobile = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -124,8 +126,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setDragOverIndex(null);
   };
 
+  const formattedDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
   return (
     <aside className="mac-sidebar">
+      {/* Mobile iOS Header */}
+      <div className="mobile-sidebar-header">
+        <div>
+          <h1 className="mobile-sidebar-title">Stocks</h1>
+          <div className="mobile-sidebar-date">{formattedDate}</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            aria-label="Toggle Search"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="mobile-header-btn"
+          >
+            <Search size={18} />
+          </button>
+        </div>
+      </div>
+
       {/* Search Header */}
       <div className="sidebar-search-header">
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>

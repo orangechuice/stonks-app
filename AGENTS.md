@@ -32,10 +32,13 @@ stonks-app/
 │   │   ├── Titlebar.tsx        # Frameless macOS title bar & window controls
 │   │   ├── Sidebar.tsx         # Watchlist sidebar (search, drag-and-drop reorder, right-click context menu, badge toggles)
 │   │   ├── StockDetail.tsx     # Main asset overview, timeframe selector, key stats
+│   │   ├── MobileDetailSheet.tsx # Slide-up mobile bottom sheet with swipe-down gesture dismiss
 │   │   ├── StockChart.tsx      # SVG chart renderer with crosshairs & dynamic color gradients
 │   │   ├── SearchModal.tsx     # Spotlight-style search modal (Cmd+K)
 │   │   ├── DateRangePickerModal.tsx # Custom date range selector modal
 │   │   └── StonksIcon.tsx      # App icon component
+│   ├── hooks/
+│   │   └── useMediaQuery.ts    # Custom window responsive breakpoint hook
 │   ├── services/
 │   │   └── yahooFinanceApi.ts  # Yahoo Finance API fetcher, sparklines, chart data transform
 │   ├── types/
